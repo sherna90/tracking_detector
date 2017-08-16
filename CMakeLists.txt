@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 2.8)
+project( tracker )
+SET (CMAKE_CXX_COMPILER             "/usr/bin/g++")
+#SET (CMAKE_CXX_FLAGS                "-Wall -g -O3 -w -std=c++11 -fopenmp")
+SET (CMAKE_CXX_FLAGS                "-Wall -g -O3 -w -std=c++11")
+SET (CMAKE_CXX_FLAGS_DEBUG          "-g")
+SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+SET (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
+SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g")
+OPTION (HAVE_CUDA "Use Cuda" OFF)
+
+find_package( OpenCV REQUIRED)
+
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories( "src/detector/" )
+include_directories( "src/likelihood/" )
+include_directories( "src/utils/" )
+#include_directories( "/usr/include/eigen3/" )
+include_directories( "/usr/local/include/eigen3/" )
+
+if(HAVE_CUDA)
+	find_package(CUDA QUIET REQUIRED)
+	include_directories( "/usr/local/cuda/include/" )
+endif()
+
+
+#if(HAVE_CUDA)
+#	add_executable( detector src/test_detector.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/GPU_logistic_regression.cpp src/likelihood/multivariate_gaussian.cpp src/likelihood/GPU_hmc.cpp src/detector/cuda_hog_detector.cpp) 
+#	target_link_libraries( detector ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${CUDA_cublas_LIBRARY})
+#else()
+#	add_executable( detector src/test_detector_cpu.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/logistic_regression.cpp src/likelihood/multivariate_gaussian.cpp src/likelihood/hmc.cpp src/detector/cpu_hog_detector.cpp) 
+#	target_link_libraries( detector ${OpenCV_LIBS})
+#endif()
+
+add_executable( test_lr src/likelihood/logistic_regression.cpp src/likelihood/Mask_CPU_logistic_regression.cpp src/utils/c_utils.cpp  src/likelihood/multivariate_gaussian.cpp src/test_lr.cpp)
+target_link_libraries( test_lr ${OpenCV_LIBS} )
+
