@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <opencv2/core.hpp>
 #include <opencv2/core/eigen.hpp>
-#include "likelihood/CPU_hmc.hpp"
+#include "likelihood/GPU_hmc.hpp"
 #include "utils/c_utils.hpp"
 
 using namespace Eigen;
@@ -33,7 +33,7 @@ int main()
 
   cout << "Train" << endl;
   double lambda = 100.0;
-  CPU_Hamiltonian_MC hmc;
+  GPU_Hamiltonian_MC hmc;
   hmc.init(data_train, labels_train, lambda, 100, 1000, 0.01, 100);
   hmc.run();
   /*VectorXd x(3);

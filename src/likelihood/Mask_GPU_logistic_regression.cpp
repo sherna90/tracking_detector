@@ -48,7 +48,7 @@ VectorXd Mask_GPU_LogisticRegression::GPU_computeMatrixMul(MatrixXd &m, VectorXd
 	return outputd;
 } 
 
-void Mask_GPU_Mask_GPU_LogisticRegression::GPU_blasMatrixVectorMul(const float *A, const float *B, float *C, const int m, const int n) {
+void Mask_GPU_LogisticRegression::GPU_blasMatrixVectorMul(const float *A, const float *B, float *C, const int m, const int n) {
 	 int lda=m,ldb=1,ldc=1;
 	 const float alf = 1.0;
 	 const float bet = 0.0;

@@ -9,6 +9,7 @@ class Mask_GPU_Hamiltonian_MC: public Hamiltonian_MC
 {
 public:
 	void init( MatrixXd &_X, VectorXd &_Y, double _lambda = 1.0, int _warmup_iterations = 100, int _iterations = 1000, double _step_size = 0.01, int _num_step = 100, double _path_lenght = 0.0);
+	void run(bool warmup_flag = false);
 	VectorXd predict(MatrixXd &_X_test, bool prob = false, int samples = 0, bool erf = false, bool prob_label = false);
 	MatrixXd get_maskMatrix();
 	void set_maskMatrix(MatrixXd &_mask_matrix);

@@ -1,6 +1,6 @@
 #include "GPU_LR_hog_detector.hpp"
 
-GPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
+void GPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
 	args.make_gray = true;
     args.resize_src = false;
     args.width = 64;
@@ -36,7 +36,7 @@ GPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     gpu_hog->setWinStride(win_stride);
 }
 
-GPU_LR_HOGDetector::init(double group_threshold, double hit_threshold,Rect reference_roi){
+void GPU_LR_HOGDetector::init(double group_threshold, double hit_threshold,Rect reference_roi){
 	args.make_gray = true;
     args.resize_src = true;
     args.width = 64;

@@ -1,6 +1,6 @@
 #include "Mask_GPU_HMC_hog_detector.hpp"
 
-Mask_GPU_HMC_HOGDetector::init(double group_threshold, double hit_threshold){
+void Mask_GPU_HMC_HOGDetector::init(double group_threshold, double hit_threshold){
 	args.make_gray = true;
     args.resize_src = false;
     args.width = 64;
@@ -36,7 +36,7 @@ Mask_GPU_HMC_HOGDetector::init(double group_threshold, double hit_threshold){
     gpu_hog->setWinStride(win_stride);
 }
 
-Mask_GPU_HMC_HOGDetector::init(double group_threshold, double hit_threshold,Rect reference_roi){
+void Mask_GPU_HMC_HOGDetector::init(double group_threshold, double hit_threshold,Rect reference_roi){
 	args.make_gray = true;
     args.resize_src = true;
     args.width = 64;

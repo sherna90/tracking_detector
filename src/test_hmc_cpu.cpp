@@ -3,8 +3,7 @@
 #include <Eigen/Core>
 #include <opencv2/core.hpp>
 #include <opencv2/core/eigen.hpp>
-#include "likelihood/GPU_logistic_regression.hpp"
-//#include "likelihood/Mask_GPU_logistic_regression.hpp"
+#include "likelihood/CPU_hmc.hpp"
 #include "utils/c_utils.hpp"
 
 using namespace Eigen;
@@ -34,9 +33,9 @@ int main()
 
   cout << "Train" << endl;
   double lambda = 100.0;
-  GPU_LogisticRegression logistic_regression;
-  logistic_regression.init(data_train, labels_train, lambda, false, true, true);
-  logistic_regression.train(1000,0.001);
+  CPU_Hamiltonian_MC hmc;
+  hmc.init(data_train, labels_train, lambda, 100, 1000, 0.01, 100);
+  hmc.run();
   /*VectorXd x(3);
   x << 10.,20.,30.;
   VectorXd temp = x.tail(x.rows()-1);
@@ -50,7 +49,7 @@ int main()
   cout << grad.transpose() << endl;*/
  
   cout << "Predict" << endl;
-  VectorXd predicted_labels = logistic_regression.predict(data_test, false);
+  VectorXd predicted_labels = hmc.predict(data_test, false);
   utils.report(labels_test, predicted_labels, true);
   utils.calculateAccuracyPercent(labels_test, predicted_labels);
   utils.confusion_matrix(labels_test, predicted_labels, true);

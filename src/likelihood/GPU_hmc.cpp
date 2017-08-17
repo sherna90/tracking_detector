@@ -1,7 +1,7 @@
 //Author: Diego Vergara
 #include "GPU_hmc.hpp"
 
-void GPU_Hamiltonian_MC::init(MatrixXd &_X, VectorXd &_Y, double _lambda, int _warmup_iterations, int _iterations, double _step_size, int _num_step, double _path_length, bool _with_mask){
+void GPU_Hamiltonian_MC::init(MatrixXd &_X, VectorXd &_Y, double _lambda, int _warmup_iterations, int _iterations, double _step_size, int _num_step, double _path_length){
 	this->lambda=_lambda;
 	this->step_size = _step_size;
 	this->num_step = _num_step;

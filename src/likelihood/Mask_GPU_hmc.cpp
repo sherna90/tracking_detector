@@ -11,7 +11,7 @@ void Mask_GPU_Hamiltonian_MC::init(MatrixXd &_X, VectorXd &_Y, double _lambda, i
 	this->X_train = &_X;
  	this->Y_train = &_Y;
 	this->dim = _X.cols()+1; // + bias
-    this->logistic_regression.init(_X, _Y, this->lambda, false, true, true, true); // GPU
+    this->logistic_regression.init(_X, _Y, this->lambda, false, true, true);
     this->init_hmc = true;
     this->sampled = 0.0;
     this->accepted = 0.0;

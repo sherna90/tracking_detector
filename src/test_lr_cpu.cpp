@@ -3,8 +3,8 @@
 #include <Eigen/Core>
 #include <opencv2/core.hpp>
 #include <opencv2/core/eigen.hpp>
-#include "likelihood/GPU_logistic_regression.hpp"
-//#include "likelihood/Mask_GPU_logistic_regression.hpp"
+//#include "likelihood/CPU_logistic_regression.hpp"
+#include "likelihood/CPU_logistic_regression.hpp"
 #include "utils/c_utils.hpp"
 
 using namespace Eigen;
@@ -34,7 +34,7 @@ int main()
 
   cout << "Train" << endl;
   double lambda = 100.0;
-  GPU_LogisticRegression logistic_regression;
+  CPU_LogisticRegression logistic_regression;
   logistic_regression.init(data_train, labels_train, lambda, false, true, true);
   logistic_regression.train(1000,0.001);
   /*VectorXd x(3);
