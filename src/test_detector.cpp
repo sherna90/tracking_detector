@@ -2,7 +2,7 @@
 
 #ifndef PARAMS
 
-const double GROUP_THRESHOLD = 0.2;
+const double GROUP_THRESHOLD = 0.1;
 const double HIT_THRESHOLD = 0.9;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
@@ -79,30 +79,33 @@ void TestDetector::train(){
  	
   	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
-
- 	/*MatrixXd data = positive_data;
- 	VectorXd labels = positive_labels;
-
- 	double ratio = ((double)positive_rows/negative_rows);
- 	double accept = 1.0 - ratio;
-
- 	uniform_real_distribution<double> unif(0.0,1.0);
- 	cout << "Data Rolling and Permutation" << endl;
- 	for (int i = 0; i < negative_rows; ++i)
- 	{
-	 	double uni_rand = unif(this->generator);
-		if(uni_rand>accept){ 
-			data.conservativeResize(data.rows() + 1, NoChange);
-			data.row(data.rows() - 1)=negative_data.row(i);
-			labels.conservativeResize(labels.size() + 1 );
-			labels(labels.size() - 1) = negative_labels(i);
-		}
- 	}*/
-	
-	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());
-	VectorXd labels(positive_labels.rows()+negative_labels.rows());
-	data << positive_data,negative_data;
-	labels << positive_labels,negative_labels;
+	double ratio = (double)positive_rows/(double)negative_rows;
+ 	cout << "positive/negative ratio : " << ratio << endl;
+ 	MatrixXd data(0, positive_data.cols());;
+ 	VectorXd labels(0);
+ 	if(ratio<0.1){
+	 	data = positive_data;
+	 	labels = positive_labels;
+	 	double accept = 1.0 - ratio;
+	 	uniform_real_distribution<double> unif(0.0,1.0);
+	 	cout << "Data Rolling and Permutation" << endl;
+	 	for (int i = 0; i < negative_rows; ++i)
+	 	{
+		 	double uni_rand = unif(this->generator);
+			if(uni_rand>accept){ 
+				data.conservativeResize(data.rows() + 1, NoChange);
+				data.row(data.rows() - 1)=negative_data.row(i);
+				labels.conservativeResize(labels.size() + 1 );
+				labels(labels.size() - 1) = negative_labels(i);
+			}
+	 	}
+	}
+	else{
+		data.resize(positive_data.rows()+negative_data.rows(), NoChange);
+		labels.resize(positive_labels.rows()+negative_labels.rows());
+		data << positive_data,negative_data;
+		labels << positive_labels,negative_labels;
+	}
 
  	utils.dataPermutation(data, labels);
 
@@ -148,32 +151,10 @@ void TestDetector::test(){
  	
   	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
-
- 	/*MatrixXd data = positive_data;
- 	VectorXd labels = positive_labels;
-
- 	double ratio = ((double)positive_rows/negative_rows);
- 	double accept = 1.0 - ratio;
-
- 	uniform_real_distribution<double> unif(0.0,1.0);
-
- 	cout << "Data Rolling and Permutation" << endl;
- 	for (int i = 0; i < negative_rows; ++i)
- 	{
-	 	double uni_rand = unif(this->generator);
-		if(uni_rand>accept){ 
-			data.conservativeResize(data.rows() + 1, NoChange);
-			data.row(data.rows() - 1)=negative_data.row(i);
-			labels.conservativeResize(labels.size() + 1 );
-			labels(labels.size() - 1) = negative_labels(i);
-		}
- 	}*/
- 	
  	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());	
 	VectorXd labels(positive_labels.rows()+negative_labels.rows());
 	data << positive_data,negative_data;
 	labels << positive_labels,negative_labels;
-
  	utils.dataPermutation(data, labels);	
 	cout << "Init Predict" << endl;
 	VectorXd y_hat = this->detector.predict(data);

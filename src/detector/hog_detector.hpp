@@ -9,7 +9,8 @@
 #include <chrono>
 #include <string>
 #include "../utils/c_utils.hpp"
-#include "../utils/nms.hpp"
+#include "../DPP/nms.hpp"
+#include "../DPP/dpp.hpp"
 
 using namespace cv;
 using namespace std;
@@ -59,7 +60,7 @@ protected:
 	int n_descriptors, n_data;
 	vector<Rect> detections;
 	VectorXd labels;
-	VectorXd weights;
+	VectorXd weights, penalty_weights;
 	Mat frame;
 	C_utils tools;
 	mt19937 generator;

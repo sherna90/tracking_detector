@@ -2,8 +2,8 @@
 
 #ifndef PARAMS
 
-const double GROUP_THRESHOLD = 0.1;
-const double HIT_THRESHOLD = 0.9;
+const int GROUP_THRESHOLD = 0.0;
+const double HIT_THRESHOLD = 0.5;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -79,34 +79,30 @@ void TestDetector::train(){
  	
   	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
-	double ratio = (double)positive_rows/(double)negative_rows;
- 	cout << "positive/negative ratio : " << ratio << endl;
- 	MatrixXd data(0, positive_data.cols());;
- 	VectorXd labels(0);
- 	if(ratio<0.1){
-	 	data = positive_data;
-	 	labels = positive_labels;
-	 	double accept = 1.0 - ratio;
-	 	uniform_real_distribution<double> unif(0.0,1.0);
-	 	cout << "Data Rolling and Permutation" << endl;
-	 	for (int i = 0; i < negative_rows; ++i)
-	 	{
-		 	double uni_rand = unif(this->generator);
-			if(uni_rand>accept){ 
-				data.conservativeResize(data.rows() + 1, NoChange);
-				data.row(data.rows() - 1)=negative_data.row(i);
-				labels.conservativeResize(labels.size() + 1 );
-				labels(labels.size() - 1) = negative_labels(i);
-			}
-	 	}
-	}
-	else{
-		data.resize(positive_data.rows()+negative_data.rows(), NoChange);
-		labels.resize(positive_labels.rows()+negative_labels.rows());
-		data << positive_data,negative_data;
-		labels << positive_labels,negative_labels;
-	}
 
+ 	/*MatrixXd data = positive_data;
+ 	VectorXd labels = positive_labels;
+ 	double ratio = ((double)positive_rows/negative_rows);
+ 	double accept = 1.0 - ratio;
+
+ 	uniform_real_distribution<double> unif(0.0,1.0);
+
+ 	cout << "Data Rolling and Permutation" << endl;
+ 	for (int i = 0; i < negative_rows; ++i)
+ 	{
+	 	double uni_rand = unif(this->generator);
+		if(uni_rand>accept){ 
+			data.conservativeResize(data.rows() + 1, NoChange);
+			data.row(data.rows() - 1)=negative_data.row(i);
+			labels.conservativeResize(labels.size() + 1 );
+			labels(labels.size() - 1) = negative_labels(i);
+		}
+ 	}*/
+
+	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());
+	VectorXd labels(positive_labels.rows()+negative_labels.rows());
+	data << positive_data,negative_data;
+	labels << positive_labels,negative_labels;
  	utils.dataPermutation(data, labels);
 
  	this->detector.loadFeatures(data, labels);
@@ -151,11 +147,33 @@ void TestDetector::test(){
  	
   	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
- 	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());	
+
+ 	/*MatrixXd data = positive_data;
+ 	VectorXd labels = positive_labels;
+
+ 	double ratio = ((double)positive_rows/negative_rows);
+ 	double accept = 1.0 - ratio;
+
+ 	uniform_real_distribution<double> unif(0.0,1.0);
+
+ 	cout << "Data Rolling and Permutation" << endl;
+ 	for (int i = 0; i < negative_rows; ++i)
+ 	{
+	 	double uni_rand = unif(this->generator);
+		if(uni_rand>accept){ 
+			data.conservativeResize(data.rows() + 1, NoChange);
+			data.row(data.rows() - 1)=negative_data.row(i);
+			labels.conservativeResize(labels.size() + 1 );
+			labels(labels.size() - 1) = negative_labels(i);
+		}
+ 	}
+	*/
+	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());
 	VectorXd labels(positive_labels.rows()+negative_labels.rows());
 	data << positive_data,negative_data;
 	labels << positive_labels,negative_labels;
- 	utils.dataPermutation(data, labels);	
+ 	utils.dataPermutation(data, labels);
+	
 	cout << "Init Predict" << endl;
 	VectorXd y_hat = this->detector.predict(data);
 	cout << "Init Report" << endl;
@@ -181,52 +199,52 @@ void TestDetector::loadModel(){
 	utils.read_Labels("INRIA_Model_mins.csv",min);
 	this->detector.loadModel(weights,mean,std, max, min, bias(0));
 };
- 
+
 double TestDetector::detect(string train_path, string list){
 	string line;
 	ifstream detect_list((train_path+list).c_str());
 	if (!detect_list) CV_Error(Error::StsBadArg, "No valid input file was given, please check the given filename.");
 	vector<Rect> detections;
 	namedWindow("Detector");
+	int n_images = 0;
+	int n_detections = 0;
 	while (getline(detect_list, line)) {
+		n_images++;
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
 		Mat grayImg;
-		cout << current_frame.rows << "," << current_frame.cols << endl;
-		if (current_frame.cols < 1100 )
+		cvtColor(current_frame, grayImg, CV_RGB2GRAY);
+    	equalizeHist(grayImg, grayImg);
+		detections.clear();
+		detections = this->detector.detect(grayImg);
+		for (int i = 0; i < detections.size(); ++i)
 		{
-			cvtColor(current_frame, grayImg, CV_RGB2GRAY);
-	    	detections.clear();
-	    	equalizeHist(grayImg, grayImg);
-			detections = this->detector.detect(grayImg);
-			for (int i = 0; i < detections.size(); ++i)
-			{
-				cout << detections.at(i) << endl;
-				rectangle( current_frame, detections.at(i), Scalar(0,0,255), 2, LINE_8  );
-			}
-			imshow("Detector", current_frame);
-			waitKey(0);
+			cout <<  detections.at(i) << endl;
+			rectangle( current_frame, detections.at(i), Scalar(0,0,255), 2, LINE_8  );	
 		}
-
+		if (detections.size() > 0)
+		{
+			n_detections++;
+		}
+		imshow("Detector", current_frame);
+		waitKey(0);
   	}
-  	return 0;
+  	return 100 * (n_images/n_detections);
 };
 
 
 
 int main(int argc, char* argv[]){
-	
-	string test_path = string("Pedestrians-Test/");
+	string test_path = string("Pedestrians-Test/"); //MARGIN = 3
 	string train_path = string("Pedestrians-Dataset/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
-
-
 	TestDetector tracker = TestDetector();
-	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
-	//tracker.train();
-	tracker.loadModel();
+	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
+	tracker.train();
+	//tracker.loadModel();
+	//tracker.test();
 	tracker.detect(test_path,positive_list);
 	//tracker.test_detector(train_path, positive_list, negative_list);
-	//tracker.test();
 }
+

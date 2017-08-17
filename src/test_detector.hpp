@@ -25,7 +25,6 @@ public:
 private:
 	vector<Mat> images;
 	vector<string> gt_vec;
-	//CPU_HOGDetector detector;
     GPU_HOGDetector detector;
     mt19937 generator;
 };

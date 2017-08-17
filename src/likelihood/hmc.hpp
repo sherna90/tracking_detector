@@ -20,7 +20,6 @@
 using namespace Eigen;
 using namespace std;
 
-
 class Hamiltonian_MC
 {
 public:

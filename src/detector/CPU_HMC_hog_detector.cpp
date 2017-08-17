@@ -93,6 +93,8 @@ vector<Rect> CPU_HMC_HOGDetector::detect(Mat &frame)
 	copyMakeBorder( current_frame, current_frame, args.padding, args.padding,args.padding,args.padding,BORDER_REPLICATE);
 	this->detections.clear();
 	this->feature_values=MatrixXd::Zero(0,this->n_descriptors);
+	this->weights.resize(0);
+	this->penalty_weights.resize(0);
 	for (int k=0;k<args.nlevels;k++){
 		int num_rows=(current_frame.rows- this->args.height + this->args.win_stride_height)/this->args.win_stride_height;
 		int num_cols=(current_frame.cols- this->args.width + this->args.win_stride_width)/this->args.win_stride_width;
@@ -121,6 +123,12 @@ vector<Rect> CPU_HMC_HOGDetector::detect(Mat &frame)
 					cout << current_resized_window << endl;
 					stringstream ss;
         			ss << predict_prob(idx);
+        			this->feature_values.conservativeResize(this->feature_values.rows() + 1, NoChange);
+					this->feature_values.row(this->feature_values.rows() - 1)=features.row(idx);
+					this->weights.conservativeResize(this->weights.size() + 1 );
+					this->weights(this->weights.size() - 1) = predict_prob(idx);
+					this->penalty_weights.conservativeResize(this->penalty_weights.size() + 1 );
+					this->penalty_weights(this->penalty_weights.size() - 1) = predict_prob(idx);
         			string disp = ss.str().substr(0,4);
         			putText(resized_frame, disp, Point(col+5, row+10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255), 2);
 					rectangle( resized_frame, current_resized_window, Scalar(0,0,255), 2, LINE_8  );
@@ -135,9 +143,12 @@ vector<Rect> CPU_HMC_HOGDetector::detect(Mat &frame)
 		imwrite(name, resized_frame);
 		pyrDown( current_frame, current_frame, Size( cvCeil(current_frame.cols/args.scale) , cvCeil(current_frame.rows/args.scale)));
 	}
-	if(this->args.gr_threshold >= 0) {
-		nms2(raw_detections, detection_weights, this->detections, args.gr_threshold, 1);
-	}
+ 	if(this->args.gr_threshold > 0) {
+		//nms2(raw_detections, detection_weights, this->detections, args.gr_threshold, 10);
+		DPP dpp = DPP();
+		VectorXd qualityTerm;
+		this->detections = dpp.run(raw_detections,this->weights, this->weights, this->feature_values, qualityTerm, 1.0, 1.0, 0.5);
+ 	}
 	else {
 		for (int i = 0; i < raw_detections.size(); ++i)
 		{

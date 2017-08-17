@@ -15,6 +15,7 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 include_directories( "src/detector/" )
 include_directories( "src/likelihood/" )
 include_directories( "src/utils/" )
+include_directories( "src/DPP/" )
 #include_directories( "/usr/include/eigen3/" )
 include_directories( "/usr/local/include/eigen3/" )
 
@@ -25,10 +26,10 @@ endif()
 
 
 if(HAVE_CUDA)
-	add_executable( detector src/test_detector.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/logistic_regression.cpp src/likelihood/GPU_logistic_regression.cpp src/likelihood/multivariate_gaussian.cpp src/detector/hog_detector.cpp src/detector/GPU_LR_hog_detector.cpp)
+	add_executable( detector src/test_detector.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/logistic_regression.cpp src/likelihood/GPU_logistic_regression.cpp src/likelihood/multivariate_gaussian.cpp src/detector/hog_detector.cpp src/detector/GPU_LR_hog_detector.cpp src/DPP/dpp.cpp)
  	target_link_libraries( detector ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${CUDA_cublas_LIBRARY})
 else()
-	add_executable( detector src/test_detector_cpu.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/logistic_regression.cpp src/likelihood/CPU_logistic_regression.cpp src/likelihood/multivariate_gaussian.cpp src/detector/CPU_LR_hog_detector.cpp src/detector/hog_detector.cpp) 
+	add_executable( detector src/test_detector_cpu.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/logistic_regression.cpp src/likelihood/CPU_logistic_regression.cpp src/likelihood/multivariate_gaussian.cpp src/detector/CPU_LR_hog_detector.cpp src/detector/hog_detector.cpp src/DPP/dpp.cpp) 
 	target_link_libraries( detector ${OpenCV_LIBS})
 endif()
 
