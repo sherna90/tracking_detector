@@ -144,7 +144,7 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		pyrDown( current_frame, current_frame, Size( cvCeil(current_frame.cols/args.scale) , cvCeil(current_frame.rows/args.scale)));
 	}
 	if(this->args.gr_threshold > 0) {
-		nms2(raw_detections, detection_weights, this->detections, args.gr_threshold, 10);
+		//nms2(raw_detections, detection_weights, this->detections, args.gr_threshold, 10);
 		DPP dpp = DPP();
 		VectorXd qualityTerm;
 		this->detections = dpp.run(raw_detections,this->weights, this->weights, this->feature_values, qualityTerm, 1.0, 1.0, 0.5);
