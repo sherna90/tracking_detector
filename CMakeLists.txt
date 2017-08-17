@@ -35,3 +35,5 @@ endif()
 add_executable( test_lr src/likelihood/logistic_regression.cpp src/likelihood/Mask_CPU_logistic_regression.cpp src/utils/c_utils.cpp  src/likelihood/multivariate_gaussian.cpp src/test_lr.cpp)
 target_link_libraries( test_lr ${OpenCV_LIBS} )
 
+add_executable( test_hmc src/likelihood/logistic_regression.cpp src/likelihood/CPU_logistic_regression.cpp src/likelihood/hmc.cpp  src/likelihood/CPU_hmc.cpp src/utils/c_utils.cpp  src/likelihood/multivariate_gaussian.cpp src/test_hmc.cpp)
+target_link_libraries( test_hmc ${OpenCV_LIBS} )

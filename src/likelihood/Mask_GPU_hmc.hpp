@@ -12,9 +12,12 @@ public:
 	VectorXd predict(MatrixXd &_X_test, bool prob = false, int samples = 0, bool erf = false, bool prob_label = false);
 	MatrixXd get_maskMatrix();
 	void set_maskMatrix(MatrixXd &_mask_matrix);
+	void getModel(VectorXd& weights, VectorXd& featureMean, VectorXd& featureStd, VectorXd& featureMax, VectorXd& featureMin, double& bias);
 	void loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias);
-
+	VectorXd gradient(VectorXd &W);
+	double logPosterior(VectorXd &W, bool precompute = true);
 protected:
+	void warmup();
 	bool with_mask;
  	MatrixXd mask_matrix;
  	Mask_GPU_LogisticRegression logistic_regression;

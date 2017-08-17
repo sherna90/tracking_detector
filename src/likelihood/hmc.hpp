@@ -26,12 +26,9 @@ class Hamiltonian_MC
 public:
 	Hamiltonian_MC();
 	void acceptace_rate();
-	VectorXd gradient(VectorXd &W);
-	double logPosterior(VectorXd &W, bool precompute = true);
 	MatrixXd get_weights();
 	void set_weights(VectorXd &_weights);
 	void set_weightsMatrix(MatrixXd &_weights);
-	void getModel(VectorXd& weights, VectorXd& featureMean, VectorXd& featureStd, VectorXd& featureMax, VectorXd& featureMin, double& bias);
 
 protected:
 	double avsigmaGauss(double mean, double var);
@@ -40,9 +37,8 @@ protected:
 	double random_uniform();
 	VectorXd random_binomial(int n, VectorXd prob, int dim);
 	VectorXd initial_momentum();
-	void warmup();
 	double unif(double step_size);
-	bool init;
+	bool init_hmc;
 	int iterations, warmup_iterations;
 	double step_size, path_length;
 	int num_step, dim;

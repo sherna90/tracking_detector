@@ -3,67 +3,13 @@
 
 
 Hamiltonian_MC::Hamiltonian_MC(){
-	this->init = true;
+	this->init_hmc = true;
 }
-
-void Hamiltonian_MC::warmup(){
-	if (this->init){
-		cout << "WarMup" << endl;
-		this->iterations = this->warmup_iterations;
-		this->run(true);
-		this->sampled = 0.0;
-	    this->accepted = 0.0;
-	    VectorXd mu = VectorXd::Zero(dim);
-	    MatrixXd temp_weights = this->weights.block(int(this->weights.rows()/10),0,this->weights.rows()- int(this->weights.rows()/10),this->weights.cols());
-	    MVNGaussian MVG= MVNGaussian(temp_weights);
-		MatrixXd cov = MVG.getCov();
-		//MatrixXd centered = temp_weights.rowwise() - temp_weights.colwise().mean();
-		//MatrixXd cov = (centered.adjoint() * centered) / double(temp_weights.rows() - 1);
-		this->multivariate_gaussian = MVNGaussian(mu, cov);
-		this->inv_cov = cov.inverse();
-		int partition = (int)this->warmup_iterations*0.5;
-		this->mean_weights = (this->weights.block(partition,0 ,this->weights.rows()-partition, this->dim)).colwise().mean();
-		//this->mean_weights = this->weights.colwise().mean();
-	}
-}	
 
 void Hamiltonian_MC::acceptace_rate(){
 	cout << "Acceptace Rate: "<< 100 * (float) this->accepted/this->sampled <<" %" <<endl;
 }
 
-
-VectorXd Hamiltonian_MC::gradient(VectorXd &W){
-	VectorXd grad(W.rows());
-	if (this->init)
-	{	
-		VectorXd temp = W.tail(W.rows()-1);
-		this->logistic_regression.setWeights(temp);
-		this->logistic_regression.setBias(W(0));
-		this->logistic_regression.preCompute();
-		VectorXd gradWeights = this->logistic_regression.computeGradient();
-		double gradBias = this->logistic_regression.getGradientBias();
-		grad << gradBias, gradWeights;
-		return grad;
-	}
-	else{
-		return grad;
-	}
-}
-
-double Hamiltonian_MC::logPosterior(VectorXd &W, bool precompute){
-	double logPost = 0.0;
-	if (this->init){
-		VectorXd temp = W.tail(W.rows()-1);
-		this->logistic_regression.setWeights(temp);
-		this->logistic_regression.setBias(W(0));
-		if(precompute) this->logistic_regression.preCompute();
-		logPost = -this->logistic_regression.logPosterior();
-		return logPost;
-	}
-	else{
-		return logPost;
-	}
-}
 
 VectorXd Hamiltonian_MC::initial_momentum(){
 	return this->multivariate_gaussian.sample();
@@ -132,7 +78,7 @@ VectorXd Hamiltonian_MC::cumGauss(VectorXd &w, MatrixXd &phi, MatrixXd &Smat){
 MatrixXd Hamiltonian_MC::get_weights(){
 	MatrixXd weights;
 
-	if (this->init){	
+	if (this->init_hmc){	
 		return this->weights;	
 	}
 	else{
@@ -142,7 +88,7 @@ MatrixXd Hamiltonian_MC::get_weights(){
 }
 
 void Hamiltonian_MC::set_weights(VectorXd &_weights){
-	if (this->init){	
+	if (this->init_hmc){	
 		this->mean_weights = _weights;	
 	}
 	else{
@@ -151,7 +97,7 @@ void Hamiltonian_MC::set_weights(VectorXd &_weights){
 }
 
 void Hamiltonian_MC::set_weightsMatrix(MatrixXd &_weights){
-	if (this->init){	
+	if (this->init_hmc){	
 		this->weights = _weights;	
 	}
 	else{
@@ -159,12 +105,4 @@ void Hamiltonian_MC::set_weightsMatrix(MatrixXd &_weights){
 	}
 }
 
-void Hamiltonian_MC::getModel(VectorXd& weights, VectorXd& featureMean, VectorXd& featureStd, VectorXd& featureMax, VectorXd& featureMin, double& bias){
-	weights = this->mean_weights.tail(this->mean_weights.rows()-1);
-	bias = this->mean_weights(0);
-	featureMean = this->logistic_regression.featureMean;
-	featureStd = this->logistic_regression.featureStd;
-	featureMax = this->logistic_regression.featureMax;
-	featureMin = this->logistic_regression.featureMin;
-}
 

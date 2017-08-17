@@ -11,9 +11,12 @@ public:
 	void init( MatrixXd &_X, VectorXd &_Y, double _lambda = 1.0, int _warmup_iterations = 100, int _iterations = 1000, double _step_size = 0.01, int _num_step = 100, double _path_lenght = 0.0);
 	void run(bool warmup_flag = false);
 	VectorXd predict(MatrixXd &_X_test, bool prob = false, int samples = 0, bool erf = false, bool prob_label = false);
+	void getModel(VectorXd& weights, VectorXd& featureMean, VectorXd& featureStd, VectorXd& featureMax, VectorXd& featureMin, double& bias);
 	void loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias);
-
+	VectorXd gradient(VectorXd &W);
+	double logPosterior(VectorXd &W, bool precompute = true);
 protected:
+	void warmup();
 	GPU_LogisticRegression logistic_regression;
 };
 

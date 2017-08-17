@@ -4,8 +4,8 @@ VectorXd CPU_LogisticRegression::train(int n_iter,double alpha,double tol){
 	VectorXd log_likelihood=VectorXd::Zero(n_iter);
 	for(int i=0;i<n_iter;i++){
 		tools.printProgBar(i, n_iter);
-		preCompute();
-		log_likelihood(i)=-logPosterior();
+		this->preCompute();
+		log_likelihood(i)=-this->logPosterior();
 		VectorXd gradient=this->computeGradient();
 		//if( (n_iter/10 % 0)==0) cout << "iteration :   " << i << " | loss : " << log_likelihood(i) << " | Gradient : " <<this->grad_bias  << ","<< gradient.transpose() << endl;
 		//cout << "iteration :   " << i << " | Weights : " << this->weights.transpose() << endl;
@@ -19,7 +19,7 @@ VectorXd CPU_LogisticRegression::train(int n_iter,double alpha,double tol){
 void CPU_LogisticRegression::preCompute(){
 	this->eta = (*this->X_train * this->weights);
 	if(this->with_bias) this->eta.noalias()=(this->eta.array()+this->bias).matrix();
-	this->phi = sigmoid(this->eta);
+	this->phi = this->sigmoid(this->eta);
 }
 
 VectorXd CPU_LogisticRegression::computeGradient(){
@@ -41,7 +41,7 @@ VectorXd CPU_LogisticRegression::predict(MatrixXd &_X_test,bool prob, bool data_
 	}
 	VectorXd eta_test = (_X_test)*this->weights;
 	if(this->with_bias) eta_test.noalias()=(eta_test.array()+this->bias).matrix();
-	VectorXd phi_test=sigmoid(eta_test);
+	VectorXd phi_test=this->sigmoid(eta_test);
 	if(!prob){
 		phi_test.noalias() = phi_test.unaryExpr([](double elem){
 	    	return (elem > 0.5) ? 1.0 : 0.0;

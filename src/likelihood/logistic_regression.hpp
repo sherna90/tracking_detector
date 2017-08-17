@@ -18,7 +18,8 @@ using namespace std;
 class LogisticRegression
 {
  public:
-	LogisticRegression(bool _normalization = false, bool _standardization = false,bool _with_bias=false);
+ 	LogisticRegression();
+	void init(bool _normalization = false, bool _standardization = false,bool _with_bias=false);
 	void init(MatrixXd &_X,VectorXd &_Y,double lambda=1.0, bool _normalization = false, bool _standardization = true,bool _with_bias=true);
  	double logPosterior();
  	void setWeights(VectorXd &_W);

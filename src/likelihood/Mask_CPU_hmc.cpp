@@ -11,8 +11,8 @@ void Mask_CPU_Hamiltonian_MC::init(MatrixXd &_X, VectorXd &_Y, double _lambda, i
 	this->X_train = &_X;
  	this->Y_train = &_Y;
 	this->dim = _X.cols()+1; // + bias
-    this->logistic_regression = Mask_CPU_LogisticRegression(_X, _Y, this->lambda, false, true, true);
-    this->init = true;
+    this->logistic_regression.init(_X, _Y, this->lambda, false, true, true);
+    this->init_hmc = true;
     this->sampled = 0.0;
     this->accepted = 0.0;
     VectorXd mu = VectorXd::Zero(dim);
@@ -27,9 +27,65 @@ void Mask_CPU_Hamiltonian_MC::init(MatrixXd &_X, VectorXd &_Y, double _lambda, i
 
 }
 
+void Mask_CPU_Hamiltonian_MC::warmup(){
+	if (this->init_hmc){
+		cout << "WarMup" << endl;
+		this->iterations = this->warmup_iterations;
+		this->run(true);
+		this->sampled = 0.0;
+	    this->accepted = 0.0;
+	    VectorXd mu = VectorXd::Zero(dim);
+	    MatrixXd temp_weights = this->weights.block(int(this->weights.rows()/10),0,this->weights.rows()- int(this->weights.rows()/10),this->weights.cols());
+	    MVNGaussian MVG= MVNGaussian(temp_weights);
+		MatrixXd cov = MVG.getCov();
+		//MatrixXd centered = temp_weights.rowwise() - temp_weights.colwise().mean();
+		//MatrixXd cov = (centered.adjoint() * centered) / double(temp_weights.rows() - 1);
+		this->multivariate_gaussian = MVNGaussian(mu, cov);
+		this->inv_cov = cov.inverse();
+		int partition = (int)this->warmup_iterations*0.5;
+		this->mean_weights = (this->weights.block(partition,0 ,this->weights.rows()-partition, this->dim)).colwise().mean();
+		//this->mean_weights = this->weights.colwise().mean();
+	}
+}
+
+
+VectorXd Mask_CPU_Hamiltonian_MC::gradient(VectorXd &W){
+	VectorXd grad(W.rows());
+	if (this->init_hmc)
+	{	
+		VectorXd temp = W.tail(W.rows()-1);
+		this->logistic_regression.setWeights(temp);
+		this->logistic_regression.setBias(W(0));
+		this->logistic_regression.preCompute();
+		VectorXd gradWeights = this->logistic_regression.computeGradient();
+		double gradBias = this->logistic_regression.getGradientBias();
+		grad << gradBias, gradWeights;
+		return grad;
+	}
+	else{
+		return grad;
+	}
+}
+
+double Mask_CPU_Hamiltonian_MC::logPosterior(VectorXd &W, bool precompute){
+	double logPost = 0.0;
+	if (this->init_hmc){
+		VectorXd temp = W.tail(W.rows()-1);
+		this->logistic_regression.setWeights(temp);
+		this->logistic_regression.setBias(W(0));
+		if(precompute) this->logistic_regression.preCompute();
+		logPost = -this->logistic_regression.logPosterior();
+		return logPost;
+	}
+	else{
+		return logPost;
+	}
+}
+
+
 void Mask_CPU_Hamiltonian_MC::run(bool warmup_flag){
 	if (!warmup_flag) cout << "Run" << endl;
-	if (this->init){	
+	if (this->init_hmc){	
 
 		VectorXd mask = VectorXd::Ones(this->dim-1);
 		//bool accepted_flag = false;
@@ -140,7 +196,7 @@ VectorXd Mask_CPU_Hamiltonian_MC::predict(MatrixXd &X_test, bool prob, int sampl
 	*/
 
 	VectorXd predict;
-	if (this->init){
+	if (this->init_hmc){
 
 		if (samples == 0){
 			if (this->with_mask){
@@ -237,7 +293,7 @@ VectorXd Mask_CPU_Hamiltonian_MC::predict(MatrixXd &X_test, bool prob, int sampl
 }
 
 MatrixXd Mask_CPU_Hamiltonian_MC::get_maskMatrix(){
-	if (this->init){
+	if (this->init_hmc){
 		return this->mask_matrix;
 	}
 	else{
@@ -247,7 +303,7 @@ MatrixXd Mask_CPU_Hamiltonian_MC::get_maskMatrix(){
 }
 
 void Mask_CPU_Hamiltonian_MC::set_maskMatrix(MatrixXd &_mask_matrix){
-	if (this->init){
+	if (this->init_hmc){
 		this->mask_matrix = _mask_matrix;
 	}
 	else{
@@ -255,8 +311,17 @@ void Mask_CPU_Hamiltonian_MC::set_maskMatrix(MatrixXd &_mask_matrix){
 	}
 }
 
+void Mask_CPU_Hamiltonian_MC::getModel(VectorXd& weights, VectorXd& featureMean, VectorXd& featureStd, VectorXd& featureMax, VectorXd& featureMin, double& bias){
+	weights = this->mean_weights.tail(this->mean_weights.rows()-1);
+	bias = this->mean_weights(0);
+	featureMean = this->logistic_regression.featureMean;
+	featureStd = this->logistic_regression.featureStd;
+	featureMax = this->logistic_regression.featureMax;
+	featureMin = this->logistic_regression.featureMin;
+}
+
 void Mask_CPU_Hamiltonian_MC::loadModel(VectorXd weights, VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias){
-	this->logistic_regression = Mask_CPU_LogisticRegression(false, true, true);
+	this->logistic_regression.init(false, true, true);
 	this->logistic_regression.setWeights(weights);
 	this->logistic_regression.setBias(bias);
 	this->logistic_regression.featureMean = featureMean;

@@ -1,6 +1,12 @@
 #include "logistic_regression.hpp"
 
-LogisticRegression::LogisticRegression(bool _normalization, bool _standardization,bool _with_bias){
+LogisticRegression::LogisticRegression(){
+	this->normalization= false;
+	this->standardization=false;
+	this->with_bias = false;
+}
+
+void LogisticRegression::init(bool _normalization, bool _standardization,bool _with_bias){
 	this->normalization=_normalization;
 	this->standardization=_standardization;
 	this->with_bias = _with_bias;
