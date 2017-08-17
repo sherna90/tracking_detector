@@ -203,7 +203,7 @@ void CPU_HMC_HOGDetector::train(Mat &frame,Rect reference_roi)
 
 void CPU_HMC_HOGDetector::train()
 {
-	this->hmc.init(this->feature_values, this->labels, args.lambda, 1000, args.n_iterations, 0.01, 100);
+	this->hmc.init(this->feature_values, this->labels, args.lambda, 100, args.n_iterations, 0.01, 100);
 	this->hmc.run();
 	
 	VectorXd weights, featureMean, featureStd, featureMax, featureMin;

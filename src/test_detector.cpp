@@ -223,9 +223,9 @@ int main(int argc, char* argv[]){
 
 
 	TestDetector tracker = TestDetector();
-	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
-	//tracker.train();
-	tracker.loadModel();
+	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
+	tracker.train();
+	//tracker.loadModel();
 	tracker.detect(test_path,positive_list);
 	//tracker.test_detector(train_path, positive_list, negative_list);
 	//tracker.test();

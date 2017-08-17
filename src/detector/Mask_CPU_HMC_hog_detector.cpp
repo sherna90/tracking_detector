@@ -201,9 +201,21 @@ void Mask_CPU_HMC_HOGDetector::train(Mat &frame,Rect reference_roi)
 	this->hmc.run();
 }
 
+MatrixXd Mask_CPU_HMC_HOGDetector::getFeatureValues(Mat &current_frame)
+{
+	vector<float> temp_features;
+	Size win_stride(args.win_stride_width, args.win_stride_height);
+	this->hog.compute(current_frame, temp_features, win_stride);
+	vector<double> features(temp_features.begin(), temp_features.end());
+	double* ptr = &features[0];
+	int rows = (int)(features.size()/this->hog.getDescriptorSize());
+	Map<MatrixXd> hogFeatures(ptr, rows, this->hog.getDescriptorSize());
+	return hogFeatures;
+}
+
 void Mask_CPU_HMC_HOGDetector::train()
 {
-	this->hmc.init(this->feature_values, this->labels, args.lambda, 1000, args.n_iterations, 0.01, 100);
+	this->hmc.init(this->feature_values, this->labels, args.lambda, 100, args.n_iterations, 0.01, 100);
 	this->hmc.run();
 	
 	VectorXd weights, featureMean, featureStd, featureMax, featureMin;
@@ -224,19 +236,6 @@ void Mask_CPU_HMC_HOGDetector::train()
 VectorXd Mask_CPU_HMC_HOGDetector::predict(MatrixXd data)
 {
 	return this->hmc.predict(data, false);
-}
-
-
-MatrixXd Mask_CPU_HMC_HOGDetector::getFeatureValues(Mat &current_frame)
-{
-	vector<float> temp_features;
-	Size win_stride(args.win_stride_width, args.win_stride_height);
-	this->hog.compute(current_frame, temp_features, win_stride);
-	vector<double> features(temp_features.begin(), temp_features.end());
-	double* ptr = &features[0];
-	int rows = (int)(features.size()/this->hog.getDescriptorSize());
-	Map<MatrixXd> hogFeatures(ptr, rows, this->hog.getDescriptorSize());
-	return hogFeatures;
 }
 
 void Mask_CPU_HMC_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias){
