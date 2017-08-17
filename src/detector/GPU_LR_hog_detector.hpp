@@ -18,7 +18,6 @@ public:
 protected:
 	Ptr<cuda::HOG> gpu_hog;
 	GPU_LogisticRegression logistic_regression;
-	//Hamiltonian_MC hmc;
 };
 
 #endif

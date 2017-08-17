@@ -1,7 +1,7 @@
 #ifndef TEST_DETECTOR_H
 #define TEST_DETECTOR_H
 
-#include "detector/cpu_hog_detector.hpp"
+#include "detector/CPU_LR_hog_detector.hpp"
 #include "utils/c_utils.hpp"
 #include "utils/image_generator.hpp"
 
@@ -24,7 +24,7 @@ public:
 private:
 	vector<Mat> images;
 	vector<string> gt_vec;
-	CPU_HOGDetector detector;
+	CPU_LR_HOGDetector detector;
     mt19937 generator;
 };
 

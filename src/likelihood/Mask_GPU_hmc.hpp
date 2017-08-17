@@ -17,7 +17,6 @@ public:
 	VectorXd gradient(VectorXd &W);
 	double logPosterior(VectorXd &W, bool precompute = true);
 protected:
-	void warmup();
 	bool with_mask;
  	MatrixXd mask_matrix;
  	Mask_GPU_LogisticRegression logistic_regression;

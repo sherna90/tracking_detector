@@ -29,8 +29,9 @@ public:
 	MatrixXd get_weights();
 	void set_weights(VectorXd &_weights);
 	void set_weightsMatrix(MatrixXd &_weights);
-
+	virtual void run(bool warmup_flag = false){ cout << "Error, 'run' function, not established" << endl;};
 protected:
+	void warmup();
 	double avsigmaGauss(double mean, double var);
 	VectorXd cumGauss(VectorXd &w, MatrixXd &phi, MatrixXd &Smat);
 	VectorXd random_generator(int dim);

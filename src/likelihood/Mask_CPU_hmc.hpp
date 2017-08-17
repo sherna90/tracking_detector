@@ -17,11 +17,9 @@ public:
 	VectorXd gradient(VectorXd &W);
 	double logPosterior(VectorXd &W, bool precompute = true);
 protected:
-	void warmup();
 	bool with_mask;
  	MatrixXd mask_matrix;
  	Mask_CPU_LogisticRegression logistic_regression;
- 	bool with_mask;
 };
 
 #endif // Mask_CPU_HAMILTONIAN_MC_H

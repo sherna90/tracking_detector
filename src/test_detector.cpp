@@ -10,8 +10,7 @@ const double NEGATIVE = 0.0;
 #endif
 
 TestDetector::TestDetector(){
-	//this->detector = CPU_HOGDetector(GROUP_THRESHOLD, HIT_THRESHOLD);
-	this->detector = CUDA_HOGDetector(GROUP_THRESHOLD, HIT_THRESHOLD);
+	this->detector.init(GROUP_THRESHOLD, HIT_THRESHOLD);
 	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
 	this->generator.seed(seed1);
 }

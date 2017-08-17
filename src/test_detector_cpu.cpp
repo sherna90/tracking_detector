@@ -10,7 +10,7 @@ const double NEGATIVE = 0.0;
 #endif
 
 TestDetector::TestDetector(){
-	this->detector = CPU_HOGDetector(GROUP_THRESHOLD, HIT_THRESHOLD);
+	this->detector.init(GROUP_THRESHOLD, HIT_THRESHOLD);
 	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
 	this->generator.seed(seed1);
 }
@@ -80,8 +80,25 @@ void TestDetector::train(){
   	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
 
- 	//MatrixXd data = positive_data;
- 	//VectorXd labels = positive_labels;
+ 	/*MatrixXd data = positive_data;
+ 	VectorXd labels = positive_labels;
+ 	double ratio = ((double)positive_rows/negative_rows);
+ 	double accept = 1.0 - ratio;
+
+ 	uniform_real_distribution<double> unif(0.0,1.0);
+
+ 	cout << "Data Rolling and Permutation" << endl;
+ 	for (int i = 0; i < negative_rows; ++i)
+ 	{
+	 	double uni_rand = unif(this->generator);
+		if(uni_rand>accept){ 
+			data.conservativeResize(data.rows() + 1, NoChange);
+			data.row(data.rows() - 1)=negative_data.row(i);
+			labels.conservativeResize(labels.size() + 1 );
+			labels(labels.size() - 1) = negative_labels(i);
+		}
+ 	}*/
+
 	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());
 	VectorXd labels(positive_labels.rows()+negative_labels.rows());
 	data << positive_data,negative_data;

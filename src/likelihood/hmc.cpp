@@ -6,6 +6,27 @@ Hamiltonian_MC::Hamiltonian_MC(){
 	this->init_hmc = true;
 }
 
+void Hamiltonian_MC::warmup(){
+	if (this->init_hmc){
+		cout << "WarMup" << endl;
+		this->iterations = this->warmup_iterations;
+		this->run(true);
+		this->sampled = 0.0;
+	    this->accepted = 0.0;
+	    VectorXd mu = VectorXd::Zero(dim);
+	    MatrixXd temp_weights = this->weights.block(int(this->weights.rows()/10),0,this->weights.rows()- int(this->weights.rows()/10),this->weights.cols());
+	    MVNGaussian MVG= MVNGaussian(temp_weights);
+		MatrixXd cov = MVG.getCov();
+		//MatrixXd centered = temp_weights.rowwise() - temp_weights.colwise().mean();
+		//MatrixXd cov = (centered.adjoint() * centered) / double(temp_weights.rows() - 1);
+		this->multivariate_gaussian = MVNGaussian(mu, cov);
+		this->inv_cov = cov.inverse();
+		int partition = (int)this->warmup_iterations*0.5;
+		this->mean_weights = (this->weights.block(partition,0 ,this->weights.rows()-partition, this->dim)).colwise().mean();
+		//this->mean_weights = this->weights.colwise().mean();
+	}
+}
+
 void Hamiltonian_MC::acceptace_rate(){
 	cout << "Acceptace Rate: "<< 100 * (float) this->accepted/this->sampled <<" %" <<endl;
 }

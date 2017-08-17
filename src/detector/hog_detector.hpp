@@ -51,7 +51,8 @@ public:
 	VectorXd getDetectionWeights();
 	void saveToCSV(string name, bool append = true);
 	void loadFeatures(MatrixXd features, VectorXd labels);
-private:
+	virtual MatrixXd getFeatureValues(Mat &current_frame){cout << "Error, 'getFeatureValues' function, not established" << endl};
+protected:
 	MatrixXd feature_values;
 	int group_threshold;
 	double hit_threshold;

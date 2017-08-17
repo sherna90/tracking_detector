@@ -16,7 +16,6 @@ public:
 	VectorXd gradient(VectorXd &W);
 	double logPosterior(VectorXd &W, bool precompute = true);
 protected:
-	void warmup();
 	GPU_LogisticRegression logistic_regression;
 };
 

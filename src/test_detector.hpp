@@ -2,7 +2,7 @@
 #define TEST_DETECTOR_H
 
 //#include "detector/cpu_hog_detector.hpp"
-#include "detector/cuda_hog_detector.hpp"
+#include "detector/GPU_hog_detector.hpp"
 #include "utils/c_utils.hpp"
 #include "utils/image_generator.hpp"
 
@@ -26,7 +26,7 @@ private:
 	vector<Mat> images;
 	vector<string> gt_vec;
 	//CPU_HOGDetector detector;
-    CUDA_HOGDetector detector;
+    GPU_HOGDetector detector;
     mt19937 generator;
 };
 
