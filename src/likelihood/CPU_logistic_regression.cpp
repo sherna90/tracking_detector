@@ -6,17 +6,20 @@ VectorXd CPU_LogisticRegression::train(int n_iter,double alpha,double tol){
 		tools.printProgBar(i, n_iter);
 		this->preCompute();
 		log_likelihood(i)=-this->logPosterior();
+		//cout << "iteration :   " << i << " | loss : " << log_likelihood(i) << endl;
 		VectorXd gradient=this->computeGradient();
-		//if( (n_iter/10 % 0)==0) cout << "iteration :   " << i << " | loss : " << log_likelihood(i) << " | Gradient : " <<this->grad_bias  << ","<< gradient.transpose() << endl;
-		//cout << "iteration :   " << i << " | Weights : " << this->weights.transpose() << endl;
-		this->weights-=alpha*gradient;
-		if(this->with_bias) this->bias-=alpha*this->grad_bias;
+		this->momemtum*=alpha;
+		this->momemtum-=gradient/(double)this->rows;
+		this->weights+=this->momemtum;
+		if(this->with_bias) this->bias-=this->grad_bias/(double)this->rows;
 	}
 	cout << endl;
+	//exit(0);
 	return log_likelihood;
 }
 
 void CPU_LogisticRegression::preCompute(){
+	//cout << this->weights.array().isFinite().transpose() << endl;
 	this->eta = (*this->X_train * this->weights);
 	if(this->with_bias) this->eta.noalias()=(this->eta.array()+this->bias).matrix();
 	this->phi = this->sigmoid(this->eta);

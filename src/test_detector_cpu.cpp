@@ -3,7 +3,7 @@
 #ifndef PARAMS
 
 const double GROUP_THRESHOLD = 0.1;
-const double HIT_THRESHOLD = 0.9;
+const double HIT_THRESHOLD = 0.5;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -216,16 +216,16 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("Pedestrians-Test/");
+	string test_path = string("INRIAPerson/Test/");
 	string train_path = string("Pedestrians-Dataset/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
 
 
 	TestDetector tracker = TestDetector();
-	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
-	tracker.train();
-	//tracker.loadModel();
+	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
+	//tracker.train();
+	tracker.loadModel();
 	tracker.detect(test_path,positive_list);
 	//tracker.test_detector(train_path, positive_list, negative_list);
 	//tracker.test();
