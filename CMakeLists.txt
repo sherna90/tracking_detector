@@ -20,17 +20,40 @@ include_directories( "src/DPP/" )
 include_directories( "/usr/include/eigen3/" )
 #include_directories( "/usr/local/include/eigen3/" )
 
+set(DETECTOR_GPU_SOURCES
+	src/utils/c_utils.cpp 
+	src/utils/image_generator.cpp 
+	src/likelihood/logistic_regression.cpp 
+	src/likelihood/GPU_logistic_regression.cpp 
+	src/likelihood/multivariate_gaussian.cpp 
+	src/detector/hog_detector.cpp 
+	src/detector/GPU_LR_hog_detector.cpp  
+	src/detector/GPU_HMC_hog_detector.cpp 
+	src/DPP/dpp.cpp
+    )
+
+set(DETECTOR_CPU_SOURCES
+	src/utils/c_utils.cpp 
+	src/utils/image_generator.cpp 
+	src/likelihood/logistic_regression.cpp 
+	src/likelihood/CPU_logistic_regression.cpp 
+	src/likelihood/multivariate_gaussian.cpp 
+	src/detector/hog_detector.cpp 
+	src/detector/CPU_LR_hog_detector.cpp  
+	src/DPP/dpp.cpp
+    )
+
 if(HAVE_CUDA)
 	find_package(CUDA QUIET REQUIRED)
 	include_directories( "/usr/local/cuda/include/" )
 endif()
 
 if(HAVE_CUDA)
-	add_executable( detector_GPU src/test_detector.cpp src/utils/c_utils.cpp src/utils/image_generator.cpp src/likelihood/logistic_regression.cpp src/likelihood/GPU_logistic_regression.cpp src/likelihood/hmc.cpp src/likelihood/GPU_hmc.cpp src/likelihood/multivariate_gaussian.cpp src/detector/hog_detector.cpp src/detector/GPU_LR_hog_detector.cpp  src/detector/GPU_HMC_hog_detector.cpp src/DPP/dpp.cpp)
+	add_executable( detector_GPU src/test_detector.cpp ${DETECTOR_GPU_SOURCES})
  	target_link_libraries( detector_GPU ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${CUDA_cublas_LIBRARY})
 else()
-	add_executable( test_lr_CPU src/test_lr_cpu.cpp src/likelihood/logistic_regression.cpp src/likelihood/CPU_logistic_regression.cpp src/utils/c_utils.cpp  )
-	target_link_libraries( test_lr_CPU ${OpenCV_LIBS} )
+	add_executable( detector_CPU src/test_detector_cpu.cpp ${DETECTOR_CPU_SOURCES}  )
+	target_link_libraries( detector_CPU ${OpenCV_LIBS} )
 endif()
 
 if(MAKE_TESTS)
