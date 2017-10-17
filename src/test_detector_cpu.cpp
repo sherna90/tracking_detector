@@ -2,8 +2,8 @@
 
 #ifndef PARAMS
 
-const double GROUP_THRESHOLD = 0.1;
-const double HIT_THRESHOLD = 0.5;
+const double GROUP_THRESHOLD = 0.5;
+const double HIT_THRESHOLD = 0.1;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -29,7 +29,7 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
     	Rect centerROI(margin, margin, grayImg.cols - margin*2, grayImg.rows - margin*2);
 		Mat croppedImage = grayImg(centerROI);
 		equalizeHist(croppedImage, croppedImage);
-		this->detector.generateFeature(croppedImage, POSITIVE);
+		this->detector.generateFeatures(croppedImage, POSITIVE);
 		this->detector.saveToCSV(filename+"positive_INRIA", append);
 		this->detector.dataClean();
 		append = true;
@@ -44,7 +44,7 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 		Mat grayImg;
     	cvtColor(current_frame, grayImg, CV_RGB2GRAY);
     	equalizeHist(grayImg, grayImg);
-		this->detector.generateFeature(grayImg, NEGATIVE);
+		this->detector.generateFeatures(grayImg, NEGATIVE);
 		this->detector.saveToCSV(filename+"negative_INRIA", append);
 		this->detector.dataClean();
 		append = true;
@@ -124,46 +124,6 @@ void TestDetector::test_detector(string test_path, string positive_list, string 
 	
 };
 
-void TestDetector::test(){
-	C_utils utils;
-
-	cout << "Read Data" << endl;
-	string data_extension = "_values.csv";
-	string label_extension = "_labels.csv";
-
-	string positive_data_name = "train_positive_INRIA";
-	string negative_data_name = "train_negative_INRIA";
-
-	MatrixXd positive_data;
-  	VectorXd positive_labels;
-
-  	int positive_rows = utils.get_Rows(positive_data_name+label_extension);
-  	int positive_cols = utils.get_Cols(positive_data_name+data_extension, ',');
-  	
-  	utils.read_Data(positive_data_name+data_extension,positive_data,positive_rows,positive_cols);
- 	utils.read_Labels(positive_data_name+label_extension,positive_labels,positive_rows);
-	
- 	MatrixXd negative_data;
-  	VectorXd negative_labels;
-
-  	int negative_rows = utils.get_Rows(negative_data_name+label_extension);
-  	int negative_cols = utils.get_Cols(negative_data_name+data_extension, ',');
- 	
-  	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
- 	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
- 	MatrixXd data(positive_data.rows()+negative_data.rows(), positive_data.cols());	
-	VectorXd labels(positive_labels.rows()+negative_labels.rows());
-	data << positive_data,negative_data;
-	labels << positive_labels,negative_labels;
- 	utils.dataPermutation(data, labels);	
-	cout << "Init Predict" << endl;
-	VectorXd y_hat = this->detector.predict(data);
-	cout << "Init Report" << endl;
-	utils.report(labels, y_hat, true); 
-	utils.confusion_matrix(labels, y_hat, true);
-	utils.calculateAccuracyPercent(labels, y_hat);
-
-};
 
 void TestDetector::loadModel(){
 	C_utils utils;

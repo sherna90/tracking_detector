@@ -33,8 +33,6 @@ void LogisticRegression::init(MatrixXd &_X,VectorXd &_Y,double _lambda, bool _no
 	this->eta = VectorXd::Zero(this->rows);
 	this->phi = VectorXd::Zero(this->rows);;
 	this->grad_bias = 0.0;
-	this->train_mask = VectorXd::Ones(this->dim);
-	this->test_mask = VectorXd::Ones(this->dim);
 	this->momemtum = VectorXd::Zero(this->dim);
  }
 

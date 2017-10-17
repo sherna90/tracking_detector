@@ -31,15 +31,15 @@ class LogisticRegression
  	//MatrixXd computeHessian(MatrixXd &_X, VectorXd &_Y, VectorXd &_W);
  	RowVectorXd featureMean,featureStd,featureMin,featureMax;
  	bool initialized = false;
+ 	virtual VectorXd train(int n_iter,double alpha,double tol) = 0 ;
+ 	virtual VectorXd predict(MatrixXd &_X_test, bool prob=false, bool data_processing = true) = 0;
 
  protected:
  	VectorXd weights;
  	MatrixXd *X_train;
  	VectorXd *Y_train;
 	VectorXd eta,phi;
-	VectorXd train_mask;
- 	VectorXd test_mask;
- 	VectorXd momemtum;
+	VectorXd momemtum;
  	int rows,dim;
  	double lambda,bias,grad_bias;
  	bool normalization, standardization, with_bias;
@@ -49,6 +49,8 @@ class LogisticRegression
  	double logLikelihood();
  	MatrixXd Hessian;
  	C_utils tools;
+	virtual void preCompute() = 0;
+ 	virtual VectorXd computeGradient() = 0;
     //MVNGaussian posterior;
 };
 
