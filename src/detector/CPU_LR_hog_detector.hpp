@@ -5,6 +5,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+#include "opencv2/core.hpp"
 #include "opencv2/ximgproc/segmentation.hpp"
 #include <iostream>
 #include <random>
@@ -19,28 +20,20 @@
 
 
 struct Args {
-	bool make_gray = true;
-    bool resize_src = true;
-    int width, height;
-    int hog_width, hog_height;
-    double scale;
-    int nlevels;
+	bool make_gray;
+    bool resize_src;
+    int hog_width;
+    int hog_height;
     double gr_threshold;
     double hit_threshold;
-    bool hit_threshold_auto;
-    int win_width;
-    int test_stride_width, test_stride_height;
-    int train_stride_width, train_stride_height;
-    int block_width;
-    int block_stride_width, block_stride_height;
-    int cell_width;
-    int nbins;
-    bool gamma_corr;
+    int n_orients;
+    int bin_size;
     double overlap_threshold;
     double p_accept;
-    double lambda, epsilon, tolerance;
+    double lambda;
+    double epsilon;
+    double tolerance;
     int n_iterations;
-    int padding;
 } ;
 
 using namespace cv;

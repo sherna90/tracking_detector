@@ -3,7 +3,7 @@
 #ifndef PARAMS
 
 const double GROUP_THRESHOLD = 0.5;
-const double HIT_THRESHOLD = 0.1;
+const double HIT_THRESHOLD = 0.9;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -24,11 +24,11 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 	while (getline(train_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		Mat grayImg;
-    	cvtColor(current_frame, grayImg, CV_RGB2GRAY);
-    	Rect centerROI(margin, margin, grayImg.cols - margin*2, grayImg.rows - margin*2);
-		Mat croppedImage = grayImg(centerROI);
-		equalizeHist(croppedImage, croppedImage);
+		//Mat grayImg;
+    	//cvtColor(current_frame, grayImg, CV_RGB2GRAY);
+    	Rect centerROI(margin, margin, current_frame.cols - margin*2, current_frame.rows - margin*2);
+		Mat croppedImage = current_frame(centerROI);
+		//equalizeHist(croppedImage, croppedImage);
 		this->detector.generateFeatures(croppedImage, POSITIVE);
 		this->detector.saveToCSV(filename+"positive_INRIA", append);
 		this->detector.dataClean();
@@ -41,10 +41,11 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
   	while (getline(test_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		Mat grayImg;
-    	cvtColor(current_frame, grayImg, CV_RGB2GRAY);
-    	equalizeHist(grayImg, grayImg);
-		this->detector.generateFeatures(grayImg, NEGATIVE);
+		cout << img_path << endl;
+		//Mat grayImg;
+    	//cvtColor(current_frame, grayImg, CV_RGB2GRAY);
+    	//equalizeHist(grayImg, grayImg);
+		this->detector.generateFeatures(current_frame, NEGATIVE);
 		this->detector.saveToCSV(filename+"negative_INRIA", append);
 		this->detector.dataClean();
 		append = true;
@@ -176,8 +177,8 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("INRIAPerson/Test/");
-	string train_path = string("INRIAPerson/train_64x128_H96/");
+	string test_path = string("Pedestrians-Test/");
+	string train_path = string("INRIA/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
 
