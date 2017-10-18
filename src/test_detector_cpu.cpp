@@ -41,7 +41,6 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
   	while (getline(test_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		cout << img_path << endl;
 		//Mat grayImg;
     	//cvtColor(current_frame, grayImg, CV_RGB2GRAY);
     	//equalizeHist(grayImg, grayImg);
@@ -177,8 +176,8 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("Pedestrians-Test/");
-	string train_path = string("INRIA/");
+	string test_path = string("INRIA/Test/");
+	string train_path = string("INRIA/train_64x128_H96/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
 

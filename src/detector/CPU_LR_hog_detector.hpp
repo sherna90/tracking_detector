@@ -5,8 +5,8 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
-#include "opencv2/core.hpp"
-#include "opencv2/ximgproc/segmentation.hpp"
+#include <opencv2/core.hpp>
+#include <opencv2/ximgproc/segmentation.hpp>
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -40,7 +40,6 @@ using namespace cv;
 using namespace std;
 using namespace Eigen;
 using namespace cv::ximgproc::segmentation;
-
 class CPU_LR_HOGDetector 
 {
 public:

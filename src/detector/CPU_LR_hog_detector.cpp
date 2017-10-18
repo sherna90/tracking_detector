@@ -188,23 +188,21 @@ void CPU_LR_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, Vector
 void CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
 {	
 	// set input image on which we will run segmentation
-   cout << "Frame Size : " << frame.rows << "," << frame.cols << endl;
    vector<Rect> samples;
     if(frame.cols > args.hog_width && frame.rows> args.hog_height){
-    	//setUseOptimized(true);
-    	//setNumThreads(4);
+    	setUseOptimized(true);
+    	setNumThreads(4);
+    	cvtColor(frame, frame,COLOR_BGR2RGB);
     	frame.convertTo( frame, CV_8U); //to double
-    	cout << "Frame Channels : " << frame.channels() << endl;
     	Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
-    	ss->switchToSelectiveSearchQuality();
-		ss->setBaseImage(frame);
-		ss->process(samples);
+    	ss->setBaseImage(frame);
+    	ss->switchToSelectiveSearchFast();
+    	ss->process(samples);
     }
     else{
     	Rect centerROI(0, 0, args.hog_width,args.hog_height);
     	samples.push_back(centerROI);
     }
-     cout << "Region Proposals : " << samples.size() << endl;
     for(unsigned i=0;i<samples.size();i++){
     	Rect current_window=samples[i];
 		Mat subImage = frame(current_window);
