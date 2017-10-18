@@ -38,12 +38,12 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 {
 	Mat current_frame;
 	frame.copyTo(current_frame);
-	Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
-    // set input image on which we will run segmentation
+	// set input image on which we will run segmentation
     vector<Rect> samples;
-	ss->setBaseImage(current_frame);
-	ss->process(samples);
-	//this->feature_values=MatrixXd::Zero(samples.size(),this->n_descriptors); //
+	setUseOptimized(true);
+    setNumThreads(4);
+    Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
+    //this->feature_values=MatrixXd::Zero(samples.size(),this->n_descriptors); //
 	this->weights.clear();
 	double max_prob=0.0;
 	MatrixXd temp_features_matrix = MatrixXd::Zero(samples.size(),this->n_descriptors);
@@ -184,16 +184,13 @@ void CPU_LR_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, Vector
 	this->logistic_regression.featureMax = featureMax;
 	this->logistic_regression.featureMin = featureMin;
 }
-
-void CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
+dvoid CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
 {	
 	// set input image on which we will run segmentation
    vector<Rect> samples;
     if(frame.cols > args.hog_width && frame.rows> args.hog_height){
     	setUseOptimized(true);
     	setNumThreads(4);
-    	cvtColor(frame, frame,COLOR_BGR2RGB);
-    	frame.convertTo( frame, CV_8U); //to double
     	Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
     	ss->setBaseImage(frame);
     	ss->switchToSelectiveSearchFast();
