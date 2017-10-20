@@ -12,11 +12,11 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     args.gr_threshold = group_threshold;
     args.hit_threshold = hit_threshold;
     args.n_orients = 9;
-    args.bin_size = 4;
+    args.bin_size = 8;
     args.overlap_threshold=0.9;
     args.p_accept = 0.99;
-    args.lambda = 100.0;
-    args.epsilon= 0.5;
+    args.lambda = 1.0;
+    args.epsilon= 0.99;
     args.tolerance = 1e-1;
     args.n_iterations = 1e3;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -31,6 +31,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
 	this->labels.resize(0);
 	this->num_frame=0;
 	this->max_value=1.0;
+	this->dataClean();
 }
 
 
@@ -39,13 +40,18 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 	Mat current_frame;
 	frame.copyTo(current_frame);
 	// set input image on which we will run segmentation
-    vector<Rect> samples;
+    vector<Rect> samples,raw_detections;
+    this->detections.clear();
 	setUseOptimized(true);
     setNumThreads(4);
     Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
+    ss->setBaseImage(current_frame);
+    ss->switchToSelectiveSearchFast();
+    ss->process(samples);
     //this->feature_values=MatrixXd::Zero(samples.size(),this->n_descriptors); //
 	this->weights.clear();
 	double max_prob=0.0;
+	cout << "Region Proposals : "   << samples.size() << endl;
 	MatrixXd temp_features_matrix = MatrixXd::Zero(samples.size(),this->n_descriptors);
 		for(int i=0;i<samples.size();i++){
 			Rect current_window=samples[i];
@@ -69,14 +75,23 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);
 		for (int i = 0; i < predict_prob.rows(); ++i)
 		{
-			Rect current_window=samples[i];
-			stringstream ss;
-	    	ss << predict_prob(i);
-	    	max_prob=MAX(max_prob,predict_prob(i));
-			this->weights.push_back(predict_prob(i));
+			if(predict_prob(i)>args.hit_threshold){
+				Rect current_window=samples[i];
+				//stringstream ss;
+	    		//ss << predict_prob(i);
+	    		max_prob=MAX(max_prob,predict_prob(i));
+				this->weights.push_back(predict_prob(i));
+				raw_detections.push_back(current_window);
+			}
 		}
+	if(this->args.gr_threshold > 0) {
+		nms2(raw_detections,this->weights,this->detections, args.gr_threshold, 1);
+	}
+	else{
+		this->detections=raw_detections;
+	}
 	this->num_frame++;
-	return samples;
+	return this->detections;
 }
 
 
@@ -84,7 +99,7 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 
 void CPU_LR_HOGDetector::train()
 {
-	this->logistic_regression.init(this->feature_values, this->labels, args.lambda, false,false,true);
+	this->logistic_regression.init(this->feature_values, this->labels, args.lambda, false,true,true);
 	this->logistic_regression.train(args.n_iterations, args.epsilon, args.tolerance);
 	VectorXd weights = this->logistic_regression.getWeights();
 	VectorXd bias(1);
@@ -184,7 +199,8 @@ void CPU_LR_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, Vector
 	this->logistic_regression.featureMax = featureMax;
 	this->logistic_regression.featureMin = featureMin;
 }
-dvoid CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
+
+void CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
 {	
 	// set input image on which we will run segmentation
    vector<Rect> samples;
@@ -208,8 +224,7 @@ dvoid CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
 		this->feature_values.conservativeResize(this->feature_values.rows() + 1, NoChange);
 		this->feature_values.row(this->feature_values.rows()-1)=hogFeatures;
     }
-    this->labels = VectorXd::Constant(label,feature_values.rows());
-
+    this->labels = VectorXd::Constant(samples.size(),label);
 }
 
 void CPU_LR_HOGDetector::dataClean(){

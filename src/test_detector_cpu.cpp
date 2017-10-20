@@ -2,7 +2,7 @@
 
 #ifndef PARAMS
 
-const double GROUP_THRESHOLD = 0.5;
+const double GROUP_THRESHOLD = 0.9;
 const double HIT_THRESHOLD = 0.9;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
@@ -24,11 +24,8 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 	while (getline(train_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		//Mat grayImg;
-    	//cvtColor(current_frame, grayImg, CV_RGB2GRAY);
-    	Rect centerROI(margin, margin, current_frame.cols - margin*2, current_frame.rows - margin*2);
+		Rect centerROI(margin, margin, current_frame.cols - margin*2, current_frame.rows - margin*2);
 		Mat croppedImage = current_frame(centerROI);
-		//equalizeHist(croppedImage, croppedImage);
 		this->detector.generateFeatures(croppedImage, POSITIVE);
 		this->detector.saveToCSV(filename+"positive_INRIA", append);
 		this->detector.dataClean();
@@ -41,9 +38,7 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
   	while (getline(test_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		//Mat grayImg;
-    	//cvtColor(current_frame, grayImg, CV_RGB2GRAY);
-    	//equalizeHist(grayImg, grayImg);
+		cout << img_path << endl;
 		this->detector.generateFeatures(current_frame, NEGATIVE);
 		this->detector.saveToCSV(filename+"negative_INRIA", append);
 		this->detector.dataClean();
@@ -79,11 +74,13 @@ void TestDetector::train(){
  	
   	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
-	double ratio = (double)positive_rows/(double)negative_rows;
- 	cout << "positive/negative ratio : " << ratio << endl;
- 	MatrixXd data(0, positive_data.cols());;
+	
+	MatrixXd data(0, positive_data.cols());;
  	VectorXd labels(0);
- 	if(ratio<0.1){
+ 	double ratio = (double)positive_rows/(double)negative_rows;
+ 	cout << "positive/negative ratio : " << ratio << endl;
+ 	//ratio=1.0;
+ 	if(ratio<0.5){
 	 	data = positive_data;
 	 	labels = positive_labels;
 	 	double accept = 1.0 - ratio;
@@ -133,12 +130,12 @@ void TestDetector::loadModel(){
 	VectorXd min;
 	VectorXd weights;
 	VectorXd bias;
-	utils.read_Labels("INRIA_Model_means.csv",mean);
-	utils.read_Labels("INRIA_Model_weights.csv",weights);
-	utils.read_Labels("INRIA_Model_stds.csv",std);
-	utils.read_Labels("INRIA_Model_bias.csv",bias);
-	utils.read_Labels("INRIA_Model_maxs.csv",max);
-	utils.read_Labels("INRIA_Model_mins.csv",min);
+	utils.read_Labels("Model_means.csv",mean);
+	utils.read_Labels("Model_weights.csv",weights);
+	utils.read_Labels("Model_stds.csv",std);
+	utils.read_Labels("Model_bias.csv",bias);
+	utils.read_Labels("Model_maxs.csv",max);
+	utils.read_Labels("Model_mins.csv",min);
 	this->detector.loadModel(weights,mean,std, max, min, bias(0));
 };
  
@@ -152,21 +149,16 @@ double TestDetector::detect(string train_path, string list){
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
 		Mat grayImg;
-		cout << current_frame.rows << "," << current_frame.cols << endl;
-		if (current_frame.cols < 1100 )
-		{
-			cvtColor(current_frame, grayImg, CV_RGB2GRAY);
-	    	detections.clear();
-	    	equalizeHist(grayImg, grayImg);
-			detections = this->detector.detect(grayImg);
-			for (int i = 0; i < detections.size(); ++i)
-			{
-				cout << detections.at(i) << endl;
+		detections.clear();
+		int newHeight = 200;
+    	int newWidth = current_frame.cols*newHeight/current_frame.rows;
+		resize(current_frame, current_frame, Size(newWidth, newHeight));
+	    detections = this->detector.detect(current_frame);
+		for (int i = 0; i < detections.size(); ++i){
 				rectangle( current_frame, detections.at(i), Scalar(0,0,255), 2, LINE_8  );
-			}
-			imshow("Detector", current_frame);
-			waitKey(0);
 		}
+		imshow("Detector", current_frame);
+		waitKey(0);
 
   	}
   	return 0;
@@ -186,7 +178,7 @@ int main(int argc, char* argv[]){
 	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 16);
 	tracker.train();
 	//tracker.loadModel();
-	tracker.detect(test_path,positive_list);
 	//tracker.test_detector(train_path, positive_list, negative_list);
+	tracker.detect(test_path,positive_list);
 	//tracker.test();
 }

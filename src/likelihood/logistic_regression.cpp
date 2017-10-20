@@ -61,10 +61,8 @@ double LogisticRegression::logLikelihood(){
 	ArrayXd y_array=this->Y_train->array();
 	ArrayXd phi_array=this->phi.array();
 	//VectorXd temp=*this->Y_train-this->phi;
-	//return temp.norm();
-	//cout << "debug:" << phi_array.sum() << "," << y_array.sum() << endl;
 	ArrayXd log_likelihood = y_array*phi_array.log() + ((1.0-y_array)*(1-phi_array).log());
-	return log_likelihood.sum();
+	return log_likelihood.sum()/(double)this->rows;
 }
 
 double LogisticRegression::logPrior(){
