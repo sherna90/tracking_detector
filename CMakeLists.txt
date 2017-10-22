@@ -41,6 +41,13 @@ set(DETECTOR_CPU_SOURCES
 	src/DPP/nms.hpp
     )
 
+set(LR_CPU_SOURCES
+	src/utils/c_utils.cpp 
+	src/likelihood/logistic_regression.cpp 
+	src/likelihood/CPU_logistic_regression.cpp
+	src/likelihood/multivariate_gaussian.cpp 
+	)
+
 if(HAVE_CUDA)
 	find_package(CUDA QUIET REQUIRED)
 	include_directories( "/usr/local/cuda/include/" )
@@ -52,5 +59,8 @@ if(HAVE_CUDA)
 else()
 	add_executable( detector_CPU src/test_detector_cpu.cpp ${DETECTOR_CPU_SOURCES}  )
 	target_link_libraries( detector_CPU ${OpenCV_LIBS} fhog)
+
+	add_executable( logistic_CPU src/test_lr_cpu.cpp ${LR_CPU_SOURCES}  )
+	target_link_libraries( logistic_CPU ${OpenCV_LIBS})
 endif()
 

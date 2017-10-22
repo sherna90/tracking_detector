@@ -7,8 +7,8 @@ const bool USE_COLOR=false;
 void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
 	args.make_gray = true;
     args.resize_src = false;
-    args.hog_width = 64;
-    args.hog_height = 128;
+    args.hog_width = 128;
+    args.hog_height = 256;
     args.gr_threshold = group_threshold;
     args.hit_threshold = hit_threshold;
     args.n_orients = 9;
@@ -16,7 +16,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     args.overlap_threshold=0.9;
     args.p_accept = 0.99;
     args.lambda = 1.0;
-    args.epsilon= 0.99;
+    args.epsilon= 0.9;
     args.tolerance = 1e-1;
     args.n_iterations = 1e3;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
