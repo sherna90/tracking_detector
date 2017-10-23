@@ -6,7 +6,7 @@ VectorXd CPU_LogisticRegression::train(int n_iter,double alpha,double tol){
 		//tools.printProgBar(i, n_iter);
 		this->preCompute();
 		log_likelihood(i)=-this->logPosterior();
-		if (i % 100 == 0) cout << "iteration :   " << i << " | loss : " << log_likelihood(i) << endl;
+		if (i % 10 == 0) cout << "iteration :   " << i << " | loss : " << log_likelihood(i) << endl;
 		VectorXd gradient=this->computeGradient();
 		this->momemtum*=alpha;
 		this->momemtum-=gradient/(double)this->rows;

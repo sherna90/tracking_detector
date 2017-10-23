@@ -15,10 +15,10 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     args.bin_size = 8;
     args.overlap_threshold=0.9;
     args.p_accept = 0.99;
-    args.lambda = 1.0;
+    args.lambda = 0.1;
     args.epsilon= 0.9;
     args.tolerance = 1e-1;
-    args.n_iterations = 1e3;
+    args.n_iterations = 1e2;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
     if(USE_COLOR){
     	int channels = 3;
@@ -32,6 +32,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
 	this->num_frame=0;
 	this->max_value=1.0;
 	this->dataClean();
+	this->initialized=false;
 }
 
 
@@ -99,7 +100,11 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 
 void CPU_LR_HOGDetector::train()
 {
-	this->logistic_regression.init(this->feature_values, this->labels, args.lambda, false,true,true);
+	if(!this->initialized) {
+		this->logistic_regression.init(this->feature_values, this->labels, args.lambda, false,true,true);
+		cout << "init train!" << endl;
+	}
+	this->initialized=true;
 	this->logistic_regression.train(args.n_iterations, args.epsilon, args.tolerance);
 	VectorXd weights = this->logistic_regression.getWeights();
 	VectorXd bias(1);
@@ -255,4 +260,5 @@ void CPU_LR_HOGDetector::loadFeatures(MatrixXd features, VectorXd labels){
 	this->dataClean();
 	this->feature_values = features;
 	this->labels = labels;
+	this->logistic_regression.setData(this->feature_values,this->labels);
 }

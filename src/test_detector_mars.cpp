@@ -2,8 +2,8 @@
 
 #ifndef PARAMS
 
-const double GROUP_THRESHOLD = 0.9;
-const double HIT_THRESHOLD = 0.9;
+const double GROUP_THRESHOLD = 0.99;
+const double HIT_THRESHOLD = 0.99;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -51,64 +51,38 @@ void TestDetector::train(){
 	C_utils utils;
 
 	cout << "Read Data" << endl;
-	string data_extension = "_values.csv";
-	string label_extension = "_labels.csv";
-
-	string positive_data_name = "train_positive_MARS";
-	string negative_data_name = "train_negative_MARS";
-
-	MatrixXd positive_data;
-  	VectorXd positive_labels;
-
-  	int positive_rows = utils.get_Rows(positive_data_name+label_extension);
-  	int positive_cols = utils.get_Cols(positive_data_name+data_extension, ',');
-  	
-  	utils.read_Data(positive_data_name+data_extension,positive_data,positive_rows,positive_cols);
- 	utils.read_Labels(positive_data_name+label_extension,positive_labels,positive_rows);
-	
- 	MatrixXd negative_data;
-  	VectorXd negative_labels;
-
-  	int negative_rows = utils.get_Rows(negative_data_name+label_extension);
-  	int negative_cols = utils.get_Cols(negative_data_name+data_extension, ',');
- 	
-  	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
- 	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
-	
-	MatrixXd data(0, positive_data.cols());;
- 	VectorXd labels(0);
- 	double ratio = (double)positive_rows/(double)negative_rows;
- 	cout << "positive/negative ratio : " << ratio << endl;
- 	//ratio=1.0;
- 	if(ratio<0.5){
-	 	data = positive_data;
-	 	labels = positive_labels;
-	 	double accept = 1.0 - ratio;
-	 	uniform_real_distribution<double> unif(0.0,1.0);
-	 	cout << "Data Rolling and Permutation" << endl;
-	 	for (int i = 0; i < negative_rows; ++i)
-	 	{
-		 	double uni_rand = unif(this->generator);
-			if(uni_rand>accept){ 
-				data.conservativeResize(data.rows() + 1, NoChange);
-				data.row(data.rows() - 1)=negative_data.row(i);
-				labels.conservativeResize(labels.size() + 1 );
-				labels(labels.size() - 1) = negative_labels(i);
-			}
-	 	}
-	}
-	else{
-		data.resize(positive_data.rows()+negative_data.rows(), NoChange);
-		labels.resize(positive_labels.rows()+negative_labels.rows());
-		data << positive_data,negative_data;
-		labels << positive_labels,negative_labels;
+	for(int epochs=0;epochs<100;epochs++){
+		for(int num_batches=0;num_batches<183;num_batches++){
+			string data_extension = "_values_"+to_string(num_batches);
+			string label_extension = "_labels_"+to_string(num_batches);
+			string positive_data_name = "MARS_DATA/train_positive";
+			string negative_data_name = "MARS_DATA/train_negative";
+			MatrixXd positive_data;
+		  	VectorXd positive_labels;
+		  	int positive_rows = utils.get_Rows(positive_data_name+label_extension);
+		  	int positive_cols = utils.get_Cols(positive_data_name+data_extension, ',');
+		  	utils.read_Data(positive_data_name+data_extension,positive_data,positive_rows,positive_cols);
+		 	utils.read_Labels(positive_data_name+label_extension,positive_labels,positive_rows);
+		 	MatrixXd negative_data;
+		  	VectorXd negative_labels;
+		  	int negative_rows = utils.get_Rows(negative_data_name+label_extension);
+		  	int negative_cols = utils.get_Cols(negative_data_name+data_extension, ',');
+		  	utils.read_Data(negative_data_name+data_extension,negative_data,negative_rows,negative_cols);
+		 	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
+			MatrixXd data(0, positive_data.cols());;
+		 	VectorXd labels(0);
+		 	double ratio = (double)positive_rows/(double)negative_rows;
+		 	data.resize(positive_data.rows()+negative_data.rows(), NoChange);
+			labels.resize(positive_labels.rows()+negative_labels.rows());
+			data << positive_data,negative_data;
+			labels << positive_labels,negative_labels;
+			utils.dataPermutation(data, labels);
+			this->detector.loadFeatures(data, labels);
+		 	this->detector.train();		
+		}
+		cout << "Epoch :"<< epochs << endl;
 	}
 
- 	utils.dataPermutation(data, labels);
-
- 	this->detector.loadFeatures(data, labels);
- 	cout << "init train" << endl;
-	this->detector.train();
 }
 
 void TestDetector::test_detector(string test_path, string positive_list, string negative_list){
@@ -175,10 +149,10 @@ int main(int argc, char* argv[]){
 
 
 	TestDetector tracker = TestDetector();
-	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
+	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
 	//tracker.train();
-	//tracker.loadModel();
+	tracker.loadModel();
 	//tracker.test_detector(train_path, positive_list, negative_list);
-	//tracker.detect(test_path,positive_list);
+	tracker.detect(test_path,positive_list);
 	//tracker.test();
 }

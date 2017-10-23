@@ -73,6 +73,7 @@ protected:
 	Mat frame;
 	C_utils tools;
 	mt19937 generator;
+	bool initialized;
 
 };
 

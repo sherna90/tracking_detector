@@ -57,7 +57,7 @@ if(HAVE_CUDA)
 	add_executable( detector_GPU src/test_detector.cpp ${DETECTOR_GPU_SOURCES})
  	target_link_libraries( detector_GPU ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${CUDA_cublas_LIBRARY} fhog)
 else()
-	add_executable( detector_CPU src/test_detector_cpu.cpp ${DETECTOR_CPU_SOURCES}  )
+	add_executable( detector_CPU src/test_detector_mars.cpp ${DETECTOR_CPU_SOURCES}  )
 	target_link_libraries( detector_CPU ${OpenCV_LIBS} fhog)
 
 	add_executable( logistic_CPU src/test_lr_cpu.cpp ${LR_CPU_SOURCES}  )
