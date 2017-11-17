@@ -54,6 +54,7 @@ public:
 	void saveToCSV(string name, bool append = true);
 	void loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias);
 	void loadFeatures(MatrixXd features, VectorXd labels);
+	VectorXd predictTest(MatrixXd features,bool data_processing);
 	
 protected:
 	Args args;

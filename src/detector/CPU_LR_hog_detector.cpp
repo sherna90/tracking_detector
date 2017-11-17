@@ -16,7 +16,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     args.overlap_threshold=0.9;
     args.p_accept = 0.99;
     args.lambda = 0.1;
-    args.epsilon= 0.9;
+    args.epsilon= 0.099;
     args.tolerance = 1e-1;
     args.n_iterations = 1e2;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -52,7 +52,7 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
     //this->feature_values=MatrixXd::Zero(samples.size(),this->n_descriptors); //
 	this->weights.clear();
 	double max_prob=0.0;
-	cout << "Region Proposals : "   << samples.size() << endl;
+	//cout << "Region Proposals : "   << samples.size() << endl;
 	MatrixXd temp_features_matrix = MatrixXd::Zero(samples.size(),this->n_descriptors);
 		for(int i=0;i<samples.size();i++){
 			Rect current_window=samples[i];
@@ -74,23 +74,25 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		VectorXd dataNorm = temp_features_matrix.rowwise().squaredNorm().array().sqrt();
 		temp_features_matrix = temp_features_matrix.array().colwise() / dataNorm.array();
 		VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);
+		max_prob=predict_prob.maxCoeff();
 		for (int i = 0; i < predict_prob.rows(); ++i)
 		{
 			if(predict_prob(i)>args.hit_threshold){
 				Rect current_window=samples[i];
 				//stringstream ss;
 	    		//ss << predict_prob(i);
-	    		max_prob=MAX(max_prob,predict_prob(i));
+	    		//max_prob=MAX(max_prob,predict_prob(i));
 				this->weights.push_back(predict_prob(i));
 				raw_detections.push_back(current_window);
 			}
 		}
 	if(this->args.gr_threshold > 0) {
-		nms2(raw_detections,this->weights,this->detections, args.gr_threshold, 1);
+		nms2(raw_detections,this->weights,this->detections, args.gr_threshold, 2);
 	}
 	else{
 		this->detections=raw_detections;
 	}
+	cout << max_prob << endl;	
 	this->num_frame++;
 	return this->detections;
 }
@@ -101,8 +103,13 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 void CPU_LR_HOGDetector::train()
 {
 	if(!this->initialized) {
-		this->logistic_regression.init(this->feature_values, this->labels, args.lambda, false,true,true);
+		this->logistic_regression.init(this->feature_values, this->labels, args.lambda, true,true,true);
 		cout << "init train!" << endl;
+		tools.writeToCSVfile("Model_means.csv", this->logistic_regression.featureMean.transpose());
+		tools.writeToCSVfile("Model_stds.csv", this->logistic_regression.featureStd.transpose());
+		tools.writeToCSVfile("Model_maxs.csv", this->logistic_regression.featureMax.transpose());
+		tools.writeToCSVfile("Model_mins.csv", this->logistic_regression.featureMin.transpose());
+		
 	}
 	this->initialized=true;
 	this->logistic_regression.train(args.n_iterations, args.epsilon, args.tolerance);
@@ -110,10 +117,6 @@ void CPU_LR_HOGDetector::train()
 	VectorXd bias(1);
 	bias << this->logistic_regression.getBias();
 	tools.writeToCSVfile("Model_weights.csv", weights);
-	tools.writeToCSVfile("Model_means.csv", this->logistic_regression.featureMean.transpose());
-	tools.writeToCSVfile("Model_stds.csv", this->logistic_regression.featureStd.transpose());
-	tools.writeToCSVfile("Model_maxs.csv", this->logistic_regression.featureMax.transpose());
-	tools.writeToCSVfile("Model_mins.csv", this->logistic_regression.featureMin.transpose());
 	tools.writeToCSVfile("Model_bias.csv", bias);
 }
 
@@ -196,13 +199,14 @@ VectorXd CPU_LR_HOGDetector::genRawPixels(Mat &frame)
 
 
 void CPU_LR_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias){
-	this->logistic_regression.init(false, true, true);
+	this->logistic_regression.init(true, true, true);
 	this->logistic_regression.setWeights(weights);
 	this->logistic_regression.setBias(bias);
 	this->logistic_regression.featureMean = featureMean;
 	this->logistic_regression.featureStd = featureStd;
 	this->logistic_regression.featureMax = featureMax;
 	this->logistic_regression.featureMin = featureMin;
+	this->initialized=true;
 }
 
 void CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
@@ -260,5 +264,9 @@ void CPU_LR_HOGDetector::loadFeatures(MatrixXd features, VectorXd labels){
 	this->dataClean();
 	this->feature_values = features;
 	this->labels = labels;
-	this->logistic_regression.setData(this->feature_values,this->labels);
+	if(this->initialized) this->logistic_regression.setData(this->feature_values,this->labels);	
+}
+
+VectorXd CPU_LR_HOGDetector::predictTest(MatrixXd features,bool data_processing){
+	return this->logistic_regression.predict(features,false,data_processing);
 }
