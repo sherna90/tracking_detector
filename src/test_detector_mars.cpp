@@ -3,7 +3,7 @@
 #ifndef PARAMS
 
 const double GROUP_THRESHOLD = 0.0;
-const double HIT_THRESHOLD = 0.99;
+const double HIT_THRESHOLD = 0.5;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -49,8 +49,8 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 
 void TestDetector::train(){
 	C_utils utils;
-	string data_extension = "_values_"+to_string(183);
-	string label_extension = "_labels_"+to_string(183);
+	string data_extension = "_values_"+to_string(0);
+	string label_extension = "_labels_"+to_string(0);
 	string positive_data_name = "MARS_DATA/train_positive";
 	string negative_data_name = "MARS_DATA/train_negative";
 	MatrixXd positive_data;
@@ -68,8 +68,8 @@ void TestDetector::train(){
 	data_test << positive_data,negative_data;
 	labels_test << positive_labels,negative_labels;
 	bool data_processing=true;
-	for(int epochs=0;epochs<1;epochs++){
-		for(int num_batches=0;num_batches<183;num_batches++){
+	for(int epochs=0;epochs<10;epochs++){
+		for(int num_batches=1;num_batches<50;num_batches++){
 			data_extension = "_values_"+to_string(num_batches);
 			label_extension = "_labels_"+to_string(num_batches);
 			utils.read_Data(positive_data_name+data_extension,positive_data);
@@ -83,18 +83,16 @@ void TestDetector::train(){
 			data << positive_data,negative_data;
 			labels << positive_labels,negative_labels;
 			cout << "----------------------------------------------" << endl;
-			cout << "Read Mini Batch : "<<  to_string(num_batches) << endl;
+			cout << "Mini Batch : "<<  to_string(num_batches) << " | Epoch : " << epochs << endl;
 			utils.dataPermutation(data, labels);
-			cout << data.rows() << ", " << data.cols() << "," << labels.size() << endl;
 			this->detector.loadFeatures(data, labels);
 			this->detector.train();
 			VectorXd predicted_labels=this->detector.predictTest(data_test,data_processing);
 			data_processing=false;
 			utils.report(labels_test, predicted_labels, true);
-			utils.calculateAccuracyPercent(labels_test, predicted_labels);
-			utils.confusion_matrix(labels_test, predicted_labels, true);
+			//utils.calculateAccuracyPercent(labels_test, predicted_labels);
+			//utils.confusion_matrix(labels_test, predicted_labels, true);
 		}
-		cout << "Epoch :"<< epochs << endl;
 	}
 
 }
@@ -142,8 +140,12 @@ double TestDetector::detect(string train_path, string list){
     	//int newWidth = current_frame.cols*newHeight/current_frame.rows;
 		//resize(current_frame, current_frame, Size(newWidth, newHeight));
 	    detections = this->detector.detect(current_frame);
+		vector<double> weights = this->detector.getWeights(); 
 		for (int i = 0; i < detections.size(); ++i){
-				rectangle( current_frame, detections.at(i), Scalar(0,0,255), 2, LINE_8  );
+				Rect r=detections.at(i);
+				rectangle( current_frame,r, Scalar(0,0,255), 2, LINE_8  );
+				rectangle( current_frame,Point(r.x,r.y-10),Point(r.x+r.width,r.y+20),Scalar(0,0,255), -1,8,0 );
+				putText(current_frame,to_string(weights.at(i)),Point(r.x+5,r.y+12),FONT_HERSHEY_SIMPLEX,0.5,Scalar(255,255,255),1);
 		}
 		imshow("Detector", current_frame);
 		waitKey(0);
@@ -156,8 +158,8 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("Pedestrians-Test/");
-	string train_path = string("MARS/");
+	string test_path = string("/media/data/data/MOT2017/train/MOT17-11-LRHOG/");
+	string train_path = string("MARS_DATA/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
 

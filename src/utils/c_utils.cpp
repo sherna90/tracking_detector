@@ -223,14 +223,14 @@ void C_utils::read_Labels(const string& filename, VectorXi& labels) {
     labels.resize(rows);
     while (getline(file, line)) {
       if (row < rows){
-        this->printProgBar(row, rows);
+        //this->printProgBar(row, rows);
         int item=atoi(line.c_str());
         labels(row)=item;
         row++;
       }
     }
     file.close();
-    cout << endl;
+    //cout << endl;
 }
 
 void C_utils::read_Labels(const string& filename, VectorXd& labels) {
@@ -243,14 +243,14 @@ void C_utils::read_Labels(const string& filename, VectorXd& labels) {
     labels.resize(rows);
     while (getline(file, line)) {
       if (row < rows){
-        this->printProgBar(row, rows);
+        //this->printProgBar(row, rows);
         double item=atof(line.c_str());
         labels(row)=item;
         row++;
       }
     }
     file.close();
-    cout << endl;
+    //cout << endl;
 }
 
 void C_utils::read_Labels(const string& filename, VectorXi& labels, int rows) {
@@ -262,14 +262,14 @@ void C_utils::read_Labels(const string& filename, VectorXi& labels, int rows) {
     labels.resize(rows);
     while (getline(file, line)) {
       if (row < rows){
-        this->printProgBar(row, rows);
+        //this->printProgBar(row, rows);
         int item=atoi(line.c_str());
         labels(row)=item;
         row++;
       }
     }
     file.close();
-    cout << endl;
+    //cout << endl;
 }
 
 void C_utils::read_Labels(const string& filename, VectorXd& labels, int rows) {
@@ -281,14 +281,14 @@ void C_utils::read_Labels(const string& filename, VectorXd& labels, int rows) {
     labels.resize(rows);
     while (getline(file, line)) {
       if (row < rows){
-        this->printProgBar(row, rows);
+        //this->printProgBar(row, rows);
         double item=atof(line.c_str());
         labels(row)=item;
         row++;
       }
     }
     file.close();
-    cout << endl;
+    //cout << endl;
 }
 
 void C_utils::read_Data(const string& filename, MatrixXd& data) {

@@ -16,8 +16,8 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     args.overlap_threshold=0.9;
     args.p_accept = 0.99;
     args.lambda = 0.1;
-    args.epsilon= 0.099;
-    args.tolerance = 1e-1;
+    args.epsilon= 0.9;
+    args.tolerance = 0.1;
     args.n_iterations = 1e2;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
     if(USE_COLOR){
@@ -29,7 +29,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     this->generator.seed(seed1);
     this->feature_values=MatrixXd::Zero(0,this->n_descriptors);
 	this->labels.resize(0);
-	this->num_frame=0;
+	this->num_frame=1;
 	this->max_value=1.0;
 	this->dataClean();
 	this->initialized=false;
@@ -44,7 +44,7 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
     vector<Rect> samples,raw_detections;
     this->detections.clear();
 	setUseOptimized(true);
-    setNumThreads(4);
+    setNumThreads(12);
     Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
     ss->setBaseImage(current_frame);
     ss->switchToSelectiveSearchFast();
@@ -87,12 +87,11 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 			}
 		}
 	if(this->args.gr_threshold > 0) {
-		nms2(raw_detections,this->weights,this->detections, args.gr_threshold, 2);
+		nms2(raw_detections,this->weights,this->detections, args.gr_threshold, 1);
 	}
 	else{
 		this->detections=raw_detections;
 	}
-	cout << max_prob << endl;	
 	this->num_frame++;
 	return this->detections;
 }
@@ -112,7 +111,10 @@ void CPU_LR_HOGDetector::train()
 		
 	}
 	this->initialized=true;
-	this->logistic_regression.train(args.n_iterations, args.epsilon, args.tolerance);
+	double learning_rate=args.tolerance/(pow(this->num_frame,0.1));
+	cout << "learning rate : " << learning_rate << endl;
+	this->logistic_regression.train(args.n_iterations, args.epsilon, learning_rate);
+	this->num_frame++;
 	VectorXd weights = this->logistic_regression.getWeights();
 	VectorXd bias(1);
 	bias << this->logistic_regression.getBias();
@@ -215,7 +217,7 @@ void CPU_LR_HOGDetector::generateFeatures(Mat &frame, double label)
    vector<Rect> samples;
     if(frame.cols > args.hog_width && frame.rows> args.hog_height){
     	setUseOptimized(true);
-    	setNumThreads(4);
+    	setNumThreads(8);
     	Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
     	ss->setBaseImage(frame);
     	ss->switchToSelectiveSearchFast();

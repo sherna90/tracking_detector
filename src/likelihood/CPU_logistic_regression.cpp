@@ -9,9 +9,9 @@ VectorXd CPU_LogisticRegression::train(int n_iter,double alpha,double tol){
 		if (i % 10 == 0) cout << "iteration :   " << i << " | loss : " << log_likelihood(i) << endl;
 		VectorXd gradient=this->computeGradient();
 		this->momemtum*=alpha;
-		this->momemtum-=gradient/(double)this->rows;
+		this->momemtum-=tol*gradient/(double)this->rows;
 		this->weights+=this->momemtum;
-		if(this->with_bias) this->bias-=this->grad_bias/(double)this->rows;
+		if(this->with_bias) this->bias-=tol*this->grad_bias/(double)this->rows;
 	}
 	cout << endl;
 	//exit(0);
