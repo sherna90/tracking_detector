@@ -56,7 +56,7 @@ int main(int argc, char *argv[] )
       utils.read_Data(negative_data_name+negative_data_extension,negative_data,negative_rows,negative_cols);
       utils.read_Labels(negative_data_name+negative_label_extension,negative_labels,negative_rows);
       MatrixXd data(0, positive_data.cols());;
-      VectorXd labels(0);
+      VectorXd labels;
       double ratio = (double)positive_rows/(double)negative_rows;
       data.resize(positive_data.rows()+negative_data.rows(), NoChange);
       labels.resize(positive_labels.rows()+negative_labels.rows());

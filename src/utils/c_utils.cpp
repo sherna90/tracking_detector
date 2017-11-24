@@ -67,9 +67,10 @@ void C_utils::writeToCSVfile(string name, MatrixXd matrix, bool append){
     }
 }
 
-void C_utils::calculateAccuracyPercent(VectorXd labels,VectorXd predicted){
-    cout << "Accuracy Score:" << endl;
-    cout << 100 * (float) labels.cwiseEqual(predicted).cast<double>().sum() / labels.size() << endl;
+double C_utils::calculateAccuracyPercent(VectorXd labels,VectorXd predicted){
+    //cout << "Accuracy Score:" << endl;
+    double acc = 100 * (float) labels.cwiseEqual(predicted).cast<double>().sum() / labels.size();
+    return acc;
 }
 
 void C_utils::printProgBar( int value, int max ) {
@@ -304,7 +305,7 @@ void C_utils::read_Data(const string& filename, MatrixXd& data) {
       col=0;
       stringstream csv_line(line);
       if (row < rows){
-        this->printProgBar(row, rows);
+        //this->printProgBar(row, rows);
         while (getline(csv_line, cell, ',')){
           if (col<cols){
             double item=atof(cell.c_str());
@@ -316,7 +317,7 @@ void C_utils::read_Data(const string& filename, MatrixXd& data) {
       }
     }
     file.close();
-    cout << endl;
+    //cout << endl;
 }
 
 void C_utils::read_Data(const string& filename, MatrixXd& data, int rows, int cols) {
@@ -330,7 +331,7 @@ void C_utils::read_Data(const string& filename, MatrixXd& data, int rows, int co
       col=0;
       stringstream csv_line(line);
       if (row < rows){
-        this->printProgBar(row, rows);
+        //this->printProgBar(row, rows);
         while (getline(csv_line, cell, ',')){
           if (col<cols){
             double item=atof(cell.c_str());
@@ -342,7 +343,7 @@ void C_utils::read_Data(const string& filename, MatrixXd& data, int rows, int co
       }
     }
     file.close();
-    cout << endl;
+    //cout << endl;
 }
 
 void C_utils::classification_Report(VectorXi &test, VectorXi &predicted)

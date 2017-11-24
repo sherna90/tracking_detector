@@ -45,7 +45,7 @@ class CPU_LR_HOGDetector
 public:
 	void init(double group_threshold, double hit_threshold);
 	vector<Rect> detect(Mat &frame);
-	void train();
+	double train();
 	VectorXd getFeatures(Mat &frame);
     vector<double> getWeights();
 	void generateFeatures(Mat &frame, double label);

@@ -38,7 +38,7 @@ public:
 	double random_uniform();
 	VectorXd random_binomial(int n, VectorXd prob, int dim);
     void writeToCSVfile(string name, MatrixXd matrix, bool append = false);
-    static void calculateAccuracyPercent(VectorXd labels,VectorXd predicted);
+    static double calculateAccuracyPercent(VectorXd labels,VectorXd predicted);
     void printProgBar( int value, int max );
     void dataPermutation(MatrixXd& X_train,VectorXd& Y_train);
     void dataNormalization(MatrixXd& data,RowVectorXd& mean, RowVectorXd& std);

@@ -99,11 +99,11 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 
 
 
-void CPU_LR_HOGDetector::train()
+double CPU_LR_HOGDetector::train()
 {
 	if(!this->initialized) {
 		this->logistic_regression.init(this->feature_values, this->labels, args.lambda, true,true,true);
-		cout << "init train!" << endl;
+		//cout << "init train!" << endl;
 		tools.writeToCSVfile("Model_means.csv", this->logistic_regression.featureMean.transpose());
 		tools.writeToCSVfile("Model_stds.csv", this->logistic_regression.featureStd.transpose());
 		tools.writeToCSVfile("Model_maxs.csv", this->logistic_regression.featureMax.transpose());
@@ -112,14 +112,15 @@ void CPU_LR_HOGDetector::train()
 	}
 	this->initialized=true;
 	double learning_rate=args.tolerance/(pow(this->num_frame,0.1));
-	cout << "learning rate : " << learning_rate << endl;
-	this->logistic_regression.train(args.n_iterations, args.epsilon, learning_rate);
+	//cout << "learning rate : " << learning_rate << endl;
+	double loss=this->logistic_regression.train(args.n_iterations, args.epsilon, learning_rate);
 	this->num_frame++;
 	VectorXd weights = this->logistic_regression.getWeights();
 	VectorXd bias(1);
 	bias << this->logistic_regression.getBias();
 	tools.writeToCSVfile("Model_weights.csv", weights);
 	tools.writeToCSVfile("Model_bias.csv", bias);
+	return loss;
 }
 
 VectorXd CPU_LR_HOGDetector::getFeatures(Mat &frame){

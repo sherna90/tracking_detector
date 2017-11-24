@@ -48,6 +48,7 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 }
 
 void TestDetector::train(){
+	chrono::time_point<std::chrono::system_clock> start, end;
 	C_utils utils;
 	string data_extension = "_values_"+to_string(0);
 	string label_extension = "_labels_"+to_string(0);
@@ -62,14 +63,15 @@ void TestDetector::train(){
 	utils.read_Data(negative_data_name+data_extension,negative_data);
 	utils.read_Labels(negative_data_name+label_extension,negative_labels);
 	MatrixXd data_test(0, positive_data.cols());;
-	VectorXd labels_test(0);
+	VectorXd labels_test;
 	data_test.resize(positive_data.rows()+negative_data.rows(), NoChange);
 	labels_test.resize(positive_labels.rows()+negative_labels.rows());
 	data_test << positive_data,negative_data;
 	labels_test << positive_labels,negative_labels;
 	bool data_processing=true;
-	for(int epochs=0;epochs<10;epochs++){
-		for(int num_batches=1;num_batches<50;num_batches++){
+	for(int epochs=0;epochs<100;epochs++){
+		for(int num_batches=1;num_batches<184;num_batches++){
+			start = std::chrono::system_clock::now();
 			data_extension = "_values_"+to_string(num_batches);
 			label_extension = "_labels_"+to_string(num_batches);
 			utils.read_Data(positive_data_name+data_extension,positive_data);
@@ -77,19 +79,22 @@ void TestDetector::train(){
 		 	utils.read_Data(negative_data_name+data_extension,negative_data);
 		 	utils.read_Labels(negative_data_name+label_extension,negative_labels);
 			MatrixXd data(0, positive_data.cols());;
-		 	VectorXd labels(0);
+		 	VectorXd labels;
 		 	data.resize(positive_data.rows()+negative_data.rows(), NoChange);
 			labels.resize(positive_labels.rows()+negative_labels.rows());
 			data << positive_data,negative_data;
 			labels << positive_labels,negative_labels;
-			cout << "----------------------------------------------" << endl;
-			cout << "Mini Batch : "<<  to_string(num_batches) << " | Epoch : " << epochs << endl;
+			cout << "-----------------------------------------------------------------------------------------" << endl;
 			utils.dataPermutation(data, labels);
 			this->detector.loadFeatures(data, labels);
-			this->detector.train();
+			double loss=this->detector.train();
 			VectorXd predicted_labels=this->detector.predictTest(data_test,data_processing);
+			double accuracy=utils.calculateAccuracyPercent(labels_test,predicted_labels);
+			end = std::chrono::system_clock::now();
+      		int elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds> (end-start).count();
+			cout << " Epoch : " << epochs  << " | Mini Batch : "<<  to_string(num_batches) << " | Train Loss : " << loss << " | Test Error : " << accuracy << " | Ellapsed Time: " << elapsed_seconds << "[s]" << endl;
 			data_processing=false;
-			utils.report(labels_test, predicted_labels, true);
+			//utils.report(labels_test, predicted_labels, false);
 			//utils.calculateAccuracyPercent(labels_test, predicted_labels);
 			//utils.confusion_matrix(labels_test, predicted_labels, true);
 		}
@@ -159,16 +164,16 @@ double TestDetector::detect(string train_path, string list){
 int main(int argc, char* argv[]){
 	
 	string test_path = string("/media/data/data/MOT2017/train/MOT17-11-LRHOG/");
-	string train_path = string("MARS_DATA/");
+	string train_path = string("MARS_DATA/MARS/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
 
 
 	TestDetector tracker = TestDetector();
 	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
-	tracker.loadModel();
-	//tracker.train();
+	//tracker.loadModel();
+	tracker.train();
 	//tracker.test_detector(train_path, positive_list, negative_list);
-	tracker.detect(test_path,positive_list);
+	//tracker.detect(test_path,positive_list);
 	//tracker.test();
 }
