@@ -74,7 +74,7 @@ void TestDetector::train(){
  	utils.read_Labels(negative_data_name+label_extension,negative_labels,negative_rows);
 	
 	MatrixXd data(0, positive_data.cols());;
- 	VectorXd labels(0);
+ 	VectorXd labels;
  	double ratio = (double)positive_rows/(double)negative_rows;
  	cout << "positive/negative ratio : " << ratio << endl;
  	//ratio=1.0;

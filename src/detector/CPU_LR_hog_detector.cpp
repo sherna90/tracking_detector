@@ -1,7 +1,7 @@
 #include "CPU_LR_hog_detector.hpp"
 
 #ifndef PARAMS
-const bool USE_COLOR=true;
+const bool USE_COLOR=false;
 #endif
 
 void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
@@ -366,7 +366,7 @@ void CPU_LR_HOGDetector::generateFeatures(Mat &frame,int label){
 		this->feature_values.conservativeResize(samples.size(), NoChange);
 		this->feature_values << temp_features_matrix;
 		this->labels.conservativeResize(samples.size());
-		this->labels = label*VectorXd::Ones(samples.size());
+		this->labels << label*VectorXd::Ones(samples.size());
 		
 	}
 	else{
@@ -387,7 +387,7 @@ void CPU_LR_HOGDetector::generateFeatures(Mat &frame,int label){
 		this->feature_values.row(0) << temp.transpose();
 		cout << "features : " << this->feature_values.rows() << endl;
 		this->labels.conservativeResize( 1 );
-		this->labels(0) = label;		
+		this->labels << label;		
 	}
 }
 
