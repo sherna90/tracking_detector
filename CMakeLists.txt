@@ -43,7 +43,8 @@ set(DETECTOR_CPU_SOURCES
 	src/utils/image_generator.cpp 
 	src/likelihood/logistic_regression.cpp 
 	src/likelihood/CPU_logistic_regression.cpp
-	src/likelihood/multivariate_gaussian.cpp 
+	src/likelihood/multivariate_gaussian.cpp
+	src/detector/hog_detector.cpp   
 	src/detector/CPU_LR_hog_detector.cpp  
 	src/DPP/dpp.cpp
 	src/DPP/nms.hpp
@@ -70,10 +71,10 @@ if(HAVE_CUDA)
  	target_link_libraries( detector_GPU ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${CUDA_cublas_LIBRARY} fhog)
 else()
 	if(HAVE_INTEL)
-		add_executable( detector_CPU src/test_detector_mars.cpp ${DETECTOR_CPU_SOURCES}  ${MKLROOT}/include)
+		add_executable( detector_CPU src/test_detector_inria.cpp ${DETECTOR_CPU_SOURCES}  ${MKLROOT}/include)
 		target_link_libraries( detector_CPU ${OpenCV_LIBS} fhog -DMKL_ILP64)
 	else()
-		add_executable( detector_CPU src/test_detector_mars.cpp ${DETECTOR_CPU_SOURCES}  )
+		add_executable( detector_CPU src/test_detector_inria.cpp ${DETECTOR_CPU_SOURCES}  )
 		target_link_libraries( detector_CPU ${OpenCV_LIBS} fhog)
 	endif()
 endif()

@@ -2,7 +2,7 @@
 
 #ifndef PARAMS
 
-const double GROUP_THRESHOLD = 0.9;
+const double GROUP_THRESHOLD = 0.1;
 const double HIT_THRESHOLD = 0.9;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
@@ -24,11 +24,10 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 	while (getline(train_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		Rect centerROI(margin, margin, current_frame.cols - margin*2, current_frame.rows - margin*2);
+		Rect centerROI(margin, margin, current_frame.cols - 2*margin, current_frame.rows - 2*margin);
 		Mat croppedImage = current_frame(centerROI);
 		this->detector.generateFeatures(croppedImage, POSITIVE);
-		this->detector.saveToCSV(filename+"positive_MARS", append);
-		this->detector.dataClean();
+		this->detector.saveToCSV(filename+"positive_INRIA", append);
 		append = true;
   	}
   	append = false;
@@ -40,8 +39,7 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 		Mat current_frame = imread(img_path);
 		cout << img_path << endl;
 		this->detector.generateFeatures(current_frame, NEGATIVE);
-		this->detector.saveToCSV(filename+"negative_MARS", append);
-		this->detector.dataClean();
+		this->detector.saveToCSV(filename+"negative_INRIA", append);
 		append = true;
   	}
   	cout << "finish" << endl;
@@ -54,8 +52,8 @@ void TestDetector::train(){
 	string data_extension = "_values.csv";
 	string label_extension = "_labels.csv";
 
-	string positive_data_name = "train_positive_MARS";
-	string negative_data_name = "train_negative_MARS";
+	string positive_data_name = "train_positive_INRIA";
+	string negative_data_name = "train_negative_INRIA";
 
 	MatrixXd positive_data;
   	VectorXd positive_labels;
@@ -106,9 +104,9 @@ void TestDetector::train(){
 
  	utils.dataPermutation(data, labels);
 
- 	this->detector.loadFeatures(data, labels);
- 	cout << "init train" << endl;
-	this->detector.train();
+ 	//this->detector.loadFeatures(data, labels);
+ 	//cout << "init train" << endl;
+	//this->detector.train();
 }
 
 void TestDetector::test_detector(string test_path, string positive_list, string negative_list){
@@ -168,14 +166,14 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("INRIA/Test/");
-	string train_path = string("MARS/");
+	string test_path = string("INRIA/");
+	string train_path = string("INRIA/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
 
 
 	TestDetector tracker = TestDetector();
-	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
+	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 3);
 	//tracker.train();
 	//tracker.loadModel();
 	//tracker.test_detector(train_path, positive_list, negative_list);
