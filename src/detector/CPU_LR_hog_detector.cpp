@@ -213,11 +213,11 @@ void CPU_LR_HOGDetector::train(Mat &frame,Rect reference_roi)
 }
 
 
-void CPU_LR_HOGDetector::train()
+double CPU_LR_HOGDetector::train()
 {
 	int num_batches=this->feature_values.rows()/100;
 	this->logistic_regression.init(this->feature_values, this->labels, args.lambda,true,true,true);
-	this->logistic_regression.train(num_batches*args.n_iterations,100,args.alpha, args.step_size);
+	VectorXd loss=this->logistic_regression.train(num_batches*args.n_iterations,100,args.alpha, args.step_size);
 	VectorXd weights = this->logistic_regression.getWeights();
 	VectorXd bias(1);
 	bias << this->logistic_regression.getBias();
@@ -227,6 +227,7 @@ void CPU_LR_HOGDetector::train()
 	tools.writeToCSVfile("Model_maxs.csv", this->logistic_regression.featureMax.transpose());
 	tools.writeToCSVfile("Model_mins.csv", this->logistic_regression.featureMin.transpose());
 	tools.writeToCSVfile("Model_bias.csv", bias);
+	return loss.sum();
 }
 
 

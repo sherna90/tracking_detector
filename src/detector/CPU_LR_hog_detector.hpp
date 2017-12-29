@@ -17,7 +17,7 @@ public:
 	vector<Rect> detect(Mat &frame);
 	vector<double> detect(Mat &frame,vector<Rect> samples);
 	void train(Mat &frame,Rect reference_roi);
-	void train();
+	double train();
 	VectorXd genHog(Mat &frame);
 	VectorXd genRawPixels(Mat &frame);
 	void loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias);

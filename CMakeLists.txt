@@ -74,8 +74,11 @@ else()
 	#	add_executable( detector_CPU src/test_detector_inria.cpp ${DETECTOR_CPU_SOURCES}  ${MKLROOT}/include)
 	#	target_link_libraries( detector_CPU ${OpenCV_LIBS} fhog -DMKL_ILP64)
 	#else()
-		add_executable( detector_CPU src/test_detector_inria.cpp ${DETECTOR_CPU_SOURCES}  )
-		target_link_libraries( detector_CPU ${OpenCV_LIBS} fhog)
+		add_executable( detector_inria src/test_detector_inria.cpp ${DETECTOR_CPU_SOURCES}  )
+		target_link_libraries( detector_inria ${OpenCV_LIBS} fhog)
+
+		add_executable( detector_mars src/test_detector_mars.cpp ${DETECTOR_CPU_SOURCES}  )
+		target_link_libraries( detector_mars ${OpenCV_LIBS} fhog)
 	#endif()
 endif()
 

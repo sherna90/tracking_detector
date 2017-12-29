@@ -104,9 +104,9 @@ void TestDetector::train(){
 
  	utils.dataPermutation(data, labels);
 
- 	//this->detector.loadFeatures(data, labels);
+ 	this->detector.loadFeatures(data, labels);
  	//cout << "init train" << endl;
-	//this->detector.train();
+	this->detector.train();
 }
 
 void TestDetector::test_detector(string test_path, string positive_list, string negative_list){
@@ -173,10 +173,10 @@ int main(int argc, char* argv[]){
 
 
 	TestDetector tracker = TestDetector();
-	tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 3);
-	//tracker.train();
+	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 3);
+	tracker.train();
 	//tracker.loadModel();
-	//tracker.test_detector(train_path, positive_list, negative_list);
+	tracker.test_detector(train_path, positive_list, negative_list);
 	//tracker.detect(test_path,positive_list);
 	//tracker.test();
 }

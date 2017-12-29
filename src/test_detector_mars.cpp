@@ -28,7 +28,6 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 		Mat croppedImage = current_frame(centerROI);
 		this->detector.generateFeatures(croppedImage, POSITIVE);
 		this->detector.saveToCSV(filename+"positive_MARS", append);
-		this->detector.dataClean();
 		append = true;
   	}
   	append = false;
@@ -41,7 +40,6 @@ void TestDetector::generateFeatures(string train_path, string positive_list, str
 		cout << img_path << endl;
 		this->detector.generateFeatures(current_frame, NEGATIVE);
 		this->detector.saveToCSV(filename+"negative_MARS", append);
-		this->detector.dataClean();
 		append = true;
   	}
   	cout << "finish" << endl;
@@ -88,11 +86,12 @@ void TestDetector::train(){
 			utils.dataPermutation(data, labels);
 			this->detector.loadFeatures(data, labels);
 			double loss=this->detector.train();
-			VectorXd predicted_labels=this->detector.predictTest(data_test,data_processing);
-			double accuracy=utils.calculateAccuracyPercent(labels_test,predicted_labels);
+			//VectorXd predicted_labels=this->detector.predictTest(data_test,data_processing);
+			//double accuracy=utils.calculateAccuracyPercent(labels_test,predicted_labels);
 			end = std::chrono::system_clock::now();
       		int elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds> (end-start).count();
-			cout << " Epoch : " << epochs  << " | Mini Batch : "<<  to_string(num_batches) << " | Train Loss : " << loss << " | Test Error : " << accuracy << " | Ellapsed Time: " << elapsed_seconds << "[s]" << endl;
+			cout << " Epoch : " << epochs  << " | Mini Batch : "<<  to_string(num_batches) 
+				<< " | Train Loss : " << loss  << " | Ellapsed Time: " << elapsed_seconds << "[s]" << endl;
 			data_processing=false;
 			//utils.report(labels_test, predicted_labels, false);
 			//utils.calculateAccuracyPercent(labels_test, predicted_labels);
