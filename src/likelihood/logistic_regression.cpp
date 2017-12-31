@@ -53,6 +53,7 @@ double LogisticRegression::logLikelihood(int iter,int mini_batch){
 	int idx = iter % num_batches;
 	int start = idx * mini_batch;
 	int end = (idx + 1) * mini_batch;
+	//cout << "start ll: " << start <<  "," << end << endl;
 	ArrayXd y_array=this->Y_train->array();
 	ArrayXd y_slice=y_array.segment(start,mini_batch);
 	ArrayXd phi_array=this->phi.array();

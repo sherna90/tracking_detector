@@ -67,7 +67,8 @@ void TestDetector::train(){
 	data_test << positive_data,negative_data;
 	labels_test << positive_labels,negative_labels;
 	bool data_processing=true;
-	for(int epochs=0;epochs<100;epochs++){
+	for(int epochs=0;epochs<1;epochs++){
+		cout << "----------------------------------------------------------------------------------" << endl;
 		for(int num_batches=1;num_batches<184;num_batches++){
 			start = std::chrono::system_clock::now();
 			data_extension = "_values_"+to_string(num_batches);
@@ -82,7 +83,6 @@ void TestDetector::train(){
 			labels.resize(positive_labels.rows()+negative_labels.rows());
 			data << positive_data,negative_data;
 			labels << positive_labels,negative_labels;
-			cout << "-----------------------------------------------------------------------------------------" << endl;
 			utils.dataPermutation(data, labels);
 			this->detector.loadFeatures(data, labels);
 			double loss=this->detector.train();
@@ -90,7 +90,7 @@ void TestDetector::train(){
 			//double accuracy=utils.calculateAccuracyPercent(labels_test,predicted_labels);
 			end = std::chrono::system_clock::now();
       		int elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds> (end-start).count();
-			cout << " Epoch : " << epochs  << " | Mini Batch : "<<  to_string(num_batches) 
+			cout << " Epoch : " << epochs  << " | Batch : "<<  to_string(num_batches) 
 				<< " | Train Loss : " << loss  << " | Ellapsed Time: " << elapsed_seconds << "[s]" << endl;
 			data_processing=false;
 			//utils.report(labels_test, predicted_labels, false);
@@ -144,6 +144,7 @@ double TestDetector::detect(string train_path, string list){
     	//int newWidth = current_frame.cols*newHeight/current_frame.rows;
 		//resize(current_frame, current_frame, Size(newWidth, newHeight));
 	    detections = this->detector.detect(current_frame);
+		cout << detections.size() << endl; 
 		vector<double> weights = this->detector.getWeights(); 
 		for (int i = 0; i < detections.size(); ++i){
 				Rect r=detections.at(i);
@@ -162,7 +163,7 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("/media/data/data/MOT2017/train/MOT17-11-LRHOG/");
+	//string test_path = string("/home/sergio/data/tud-brussels-motionpairs/TUD-MotionPairs/");
 	string train_path = string("MARS_DATA/MARS/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");

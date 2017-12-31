@@ -20,7 +20,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
 	args.step_size = 0.001;
 	args.stride = 10;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-	args.n_iterations = 1000;
+	args.n_iterations = 1;
 	//this->n_descriptors = (args.width/args.cell_width-1)*(args.height/args.cell_width-1)*args.nbins*(args.block_width*args.block_width/(args.cell_width*args.cell_width));
 	if(USE_COLOR){
     	int channels = 3;
@@ -44,6 +44,7 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 	this->detections.clear();
 	//samples=region_proposal(current_frame);
 	samples=sliding_window(current_frame,args.stride);
+	cout << samples.size() << endl; 
 	this->feature_values=MatrixXd::Zero(0,this->n_descriptors);
 	this->weights.clear();
 	double max_prob=0.0;
@@ -59,14 +60,16 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 				temp << hogFeatures, rawPixelsFeatures;
 			}
 			else{
-				temp.resize(hogFeatures.rows());
+				temp.resize(hogFeatures.size());
 				temp << hogFeatures;
-			}			
-			temp_features_matrix.row(i) = temp;	
+			}
+			temp_features_matrix.row(i) = temp.transpose();	
 		}
 		VectorXd dataNorm = temp_features_matrix.rowwise().squaredNorm().array().sqrt();
 		temp_features_matrix = temp_features_matrix.array().colwise() / dataNorm.array();
-		VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);
+		cout << temp_features_matrix.rows() << "," << temp_features_matrix.cols() << endl; 
+		VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);		
+			
 		for (int i = 0; i < predict_prob.rows(); ++i)
 		{
 			if(predict_prob(i)>args.hit_threshold){
@@ -216,8 +219,13 @@ void CPU_LR_HOGDetector::train(Mat &frame,Rect reference_roi)
 double CPU_LR_HOGDetector::train()
 {
 	int num_batches=this->feature_values.rows()/100;
-	this->logistic_regression.init(this->feature_values, this->labels, args.lambda,true,true,true);
-	VectorXd loss=this->logistic_regression.train(num_batches*args.n_iterations,100,args.alpha, args.step_size);
+	if(!this->logistic_regression.initialized){
+		this->logistic_regression.init(this->feature_values, this->labels, args.lambda,true,true,true);	
+	} 
+	else{
+		this->logistic_regression.setData(this->feature_values, this->labels);
+	}
+	VectorXd loss=this->logistic_regression.train(args.n_iterations,100,args.alpha, args.step_size);
 	VectorXd weights = this->logistic_regression.getWeights();
 	VectorXd bias(1);
 	bias << this->logistic_regression.getBias();
@@ -312,22 +320,24 @@ void CPU_LR_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, Vector
 	this->logistic_regression.featureMin = featureMin;
 }
 
-vector<Rect> CPU_LR_HOGDetector::sliding_window(Mat frame,int stride){
+vector<Rect> CPU_LR_HOGDetector::sliding_window(Mat &frame,int stride){
 	vector<Rect> samples;
-	int num_rows=(frame.rows- args.hog_width + stride)/stride;
-	int num_cols=(frame.cols- args.hog_height + stride)/stride;
-	for(int i=0;i<num_rows;i++){
-		for(int j=0;j<num_cols;j++){
+	int num_rows=(frame.rows- args.hog_height + stride)/stride;
+	int num_cols=(frame.cols- args.hog_width + stride)/stride;
+	for(int j=0;j<num_cols;++j){
+		for(int i=0;i<num_rows;++i){
 			int row=i*stride;
 			int col=j*stride;
 			Rect current_window(col,row, args.hog_width , args.hog_height);
 			samples.push_back(current_window);
 		}
 	}
+	//cout << "num rows: " << frame.rows << ", num cols: " << frame.cols << endl;
+	//cout << "num rows: " << num_rows << ", num cols: " << num_cols << endl;
 	return samples;	
 }
 
-vector<Rect> CPU_LR_HOGDetector::region_proposal(Mat frame){
+vector<Rect> CPU_LR_HOGDetector::region_proposal(Mat &frame){
 	vector<Rect> samples;
 	setUseOptimized(true);
     setNumThreads(8);
