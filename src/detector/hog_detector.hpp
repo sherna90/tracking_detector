@@ -69,7 +69,8 @@ protected:
 	vector<double> weights;
 	Mat frame;
 	C_utils tools;
-	mt19937 generator;
+    mt19937 generator;
+    DPP dpp;
 };
 
 #endif

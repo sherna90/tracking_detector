@@ -60,8 +60,6 @@ VectorXd CPU_LogisticRegression::predict(MatrixXd &_X_test,bool prob, bool data_
 		if (this->normalization) tools.testNormalization(_X_test,this->featureMax,this->featureMin);
 		if (this->standardization) tools.testStandardization(_X_test,this->featureMean,this->featureStd);
 	}
-	cout << this->weights.size() << endl;
-	cout << _X_test.rows() << ", " << _X_test.cols() << endl;
 	VectorXd eta_test = (_X_test)*this->weights;
 	if(this->with_bias) eta_test.noalias()=(eta_test.array()+this->bias).matrix();
 	VectorXd phi_test=this->sigmoid(eta_test);

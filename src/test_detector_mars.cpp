@@ -120,12 +120,12 @@ void TestDetector::loadModel(){
 	VectorXd min;
 	VectorXd weights;
 	VectorXd bias;
-	utils.read_Labels("Model_means.csv",mean);
-	utils.read_Labels("Model_weights.csv",weights);
-	utils.read_Labels("Model_stds.csv",std);
-	utils.read_Labels("Model_bias.csv",bias);
-	utils.read_Labels("Model_maxs.csv",max);
-	utils.read_Labels("Model_mins.csv",min);
+	utils.read_Labels("../scripts/Model_means.csv",mean);
+	utils.read_Labels("../scripts/Model_weights.csv",weights);
+	utils.read_Labels("../scripts/Model_stds.csv",std);
+	utils.read_Labels("../scripts/Model_bias.csv",bias);
+	utils.read_Labels("../scripts/Model_maxs.csv",max);
+	utils.read_Labels("../scripts/Model_mins.csv",min);
 	this->detector.loadModel(weights,mean,std, max, min, bias(0));
 };
  
@@ -140,11 +140,10 @@ double TestDetector::detect(string train_path, string list){
 		Mat current_frame = imread(img_path);
 		Mat grayImg;
 		detections.clear();
-		//int newHeight = 200;
-    	//int newWidth = current_frame.cols*newHeight/current_frame.rows;
-		//resize(current_frame, current_frame, Size(newWidth, newHeight));
+		int newHeight = max(current_frame.rows/2,240);
+    	int newWidth = max(current_frame.cols/2,320);
+		resize(current_frame, current_frame, Size(newWidth, newHeight));
 	    detections = this->detector.detect(current_frame);
-		cout << detections.size() << endl; 
 		vector<double> weights = this->detector.getWeights(); 
 		for (int i = 0; i < detections.size(); ++i){
 				Rect r=detections.at(i);
@@ -153,7 +152,7 @@ double TestDetector::detect(string train_path, string list){
 				putText(current_frame,to_string(weights.at(i)),Point(r.x+5,r.y+12),FONT_HERSHEY_SIMPLEX,0.5,Scalar(255,255,255),1);
 		}
 		imshow("Detector", current_frame);
-		waitKey(0);
+		waitKey(1);
 
   	}
   	return 0;
@@ -163,7 +162,7 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	//string test_path = string("/home/sergio/data/tud-brussels-motionpairs/TUD-MotionPairs/");
+	string test_path = string("2DMOT2015/");
 	string train_path = string("MARS_DATA/MARS/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");
@@ -171,9 +170,9 @@ int main(int argc, char* argv[]){
 
 	TestDetector tracker = TestDetector();
 	//tracker.generateFeatures(train_path, positive_list, negative_list, "train_", 0);
-	//tracker.loadModel();
-	tracker.train();
+	tracker.loadModel();
+	//tracker.train();
 	//tracker.test_detector(train_path, positive_list, negative_list);
-	//tracker.detect(test_path,positive_list);
+	tracker.detect(test_path,positive_list);
 	//tracker.test();
 }

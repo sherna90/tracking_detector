@@ -7,8 +7,8 @@ const bool USE_COLOR=false;
 void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
 	args.make_gray = true;
     args.resize_src = false;
-    args.hog_width = 64;
-    args.hog_height = 128;
+    args.hog_width = 128;
+    args.hog_height = 256;
     args.gr_threshold = group_threshold;
     args.hit_threshold = hit_threshold;
     args.n_orients = 9;
@@ -42,9 +42,8 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 	frame.copyTo(current_frame);
 	vector<Rect> samples,raw_detections;
 	this->detections.clear();
-	//samples=region_proposal(current_frame);
-	samples=sliding_window(current_frame,args.stride);
-	cout << samples.size() << endl; 
+	samples=region_proposal(current_frame);
+	//samples=sliding_window(current_frame,args.stride); 
 	this->feature_values=MatrixXd::Zero(0,this->n_descriptors);
 	this->weights.clear();
 	double max_prob=0.0;
@@ -67,7 +66,6 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		}
 		VectorXd dataNorm = temp_features_matrix.rowwise().squaredNorm().array().sqrt();
 		temp_features_matrix = temp_features_matrix.array().colwise() / dataNorm.array();
-		cout << temp_features_matrix.rows() << "," << temp_features_matrix.cols() << endl; 
 		VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);		
 			
 		for (int i = 0; i < predict_prob.rows(); ++i)
@@ -88,10 +86,28 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 			}
 		}
 	if(this->args.gr_threshold > 0) {
-		nms2(raw_detections,this->weights,this->detections, args.gr_threshold,1);
+		nms2(raw_detections,this->weights,this->detections, args.gr_threshold,2);
 	}
 	else{
-		this->detections=raw_detections;
+		VectorXd dpp_weights,penalty_weights;
+		penalty_weights=VectorXd::Zero(raw_detections.size());
+		for (size_t i = 0; i < raw_detections.size(); ++i)
+		{
+			Rect bbox = raw_detections.at(i);
+			double IoU=0.0;
+			for (size_t j = 0; j < raw_detections.size(); ++j)
+			{
+				Rect bbox2 = raw_detections.at(j);
+				double Intersection = (double)(bbox2 &  bbox).area();
+				double Union=(double)bbox.area()+(double)bbox2.area()-Intersection;
+				IoU+=Intersection/Union;
+			}
+			IoU=IoU/(double)raw_detections.size();
+			penalty_weights(i) = exp(-1.0*(-IoU));
+		}
+		VectorXd prior_weights = Map<VectorXd, Unaligned>(this->weights.data(), this->weights.size());
+		this->detections=dpp.run(raw_detections,prior_weights,penalty_weights,this->feature_values,dpp_weights,0.9,0.1,0.3);
+		//this->detections=raw_detections;
 	}
 	imwrite("resized_image.png", current_frame);
 	this->num_frame++;
@@ -311,7 +327,7 @@ VectorXd CPU_LR_HOGDetector::genRawPixels(Mat &frame)
 
 
 void CPU_LR_HOGDetector::loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias){
-	this->logistic_regression.init(false, true, true);
+	this->logistic_regression.init(true, true, true);
 	this->logistic_regression.setWeights(weights);
 	this->logistic_regression.setBias(bias);
 	this->logistic_regression.featureMean = featureMean;
