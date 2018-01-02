@@ -140,9 +140,9 @@ double TestDetector::detect(string train_path, string list){
 		Mat current_frame = imread(img_path);
 		Mat grayImg;
 		detections.clear();
-		int newHeight = max(current_frame.rows/2,240);
-    	int newWidth = max(current_frame.cols/2,320);
-		resize(current_frame, current_frame, Size(newWidth, newHeight));
+		int newHeight = max((int)current_frame.rows/2,240);
+    	int newWidth = max((int)current_frame.cols/2,320);
+		//resize(current_frame, current_frame, Size(newWidth, newHeight));
 	    detections = this->detector.detect(current_frame);
 		vector<double> weights = this->detector.getWeights(); 
 		for (int i = 0; i < detections.size(); ++i){

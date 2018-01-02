@@ -94,19 +94,23 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		for (size_t i = 0; i < raw_detections.size(); ++i)
 		{
 			Rect bbox = raw_detections.at(i);
-			double IoU=0.0;
+			//double IoU=0.0;
+			int inside_count=0;
 			for (size_t j = 0; j < raw_detections.size(); ++j)
 			{
 				Rect bbox2 = raw_detections.at(j);
 				double Intersection = (double)(bbox2 &  bbox).area();
-				double Union=(double)bbox.area()+(double)bbox2.area()-Intersection;
-				IoU+=Intersection/Union;
+				//double Union=(double)bbox.area()+(double)bbox2.area()-Intersection;
+				double area_ratio=bbox2.area()/bbox.area();
+				//IoU=Intersection/Union;
+				if(Intersection>0 & area_ratio<0.7) inside_count++;
 			}
-			IoU=IoU/(double)raw_detections.size();
-			penalty_weights(i) = exp(-1.0*(-IoU));
+			penalty_weights(i) = exp((-1.0/2.0)*(inside_count));
 		}
 		VectorXd prior_weights = Map<VectorXd, Unaligned>(this->weights.data(), this->weights.size());
-		this->detections=dpp.run(raw_detections,prior_weights,penalty_weights,this->feature_values,dpp_weights,0.9,0.1,0.3);
+		this->detections=dpp.run(raw_detections,prior_weights,penalty_weights,this->feature_values,dpp_weights,0.5,1.0,0.9);
+		vector<double> new_weights(&dpp_weights[0], dpp_weights.data()+dpp_weights.size());
+		this->weights=new_weights;
 		//this->detections=raw_detections;
 	}
 	imwrite("resized_image.png", current_frame);
