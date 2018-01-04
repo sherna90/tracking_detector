@@ -18,7 +18,7 @@ public:
 	DPP();
 	/*vector<Rect> run(vector<Rect> preDetections, VectorXd &detectionWeights,VectorXd &penaltyWeights,MatrixXd &featureValues,
 	 double alpha, double lambda, double beta, double mu, double epsilon);*/
-	vector<Rect> run(vector<Rect> preDetections, VectorXd &detectionWeights,VectorXd &penaltyWeights, MatrixXd &featureValues, 
+	vector<Rect> run(vector<Rect> preDetections, VectorXd &detectionWeights, MatrixXd &featureValues, 
 		VectorXd &qualityTermResults, double lambda, double mu, double epsilon);
 
 private:

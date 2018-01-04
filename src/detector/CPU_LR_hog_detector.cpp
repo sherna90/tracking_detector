@@ -72,13 +72,13 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		{
 			if(predict_prob(i)>args.hit_threshold){
 				Rect current_window=samples[i];
-				stringstream ss;
+				/*stringstream ss;
 	    		ss << predict_prob(i);
 				max_prob=MAX(max_prob,predict_prob(i));
 				string disp = ss.str().substr(0,4);
 	    		rectangle( current_frame, Point(current_window.x,current_window.y),Point(current_window.x+current_window.width,current_window.y+20), Scalar(0,0,255), -1, 8,0 );
 	    		putText(current_frame, disp, Point(current_window.x+5, current_window.y+12), FONT_HERSHEY_SIMPLEX, 0.3, Scalar(255, 255, 255),1);
-				rectangle( current_frame, current_window, Scalar(0,0,255), 1, LINE_8  );
+				rectangle( current_frame, current_window, Scalar(0,0,255), 1, LINE_8  );*/
 				this->weights.push_back(predict_prob(i));
 				this->feature_values.conservativeResize(this->feature_values.rows() + 1, NoChange);
 				this->feature_values.row(this->feature_values.rows()-1) << temp_features_matrix.row(i);
@@ -89,31 +89,14 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 		nms2(raw_detections,this->weights,this->detections, args.gr_threshold,2);
 	}
 	else{
-		VectorXd dpp_weights,penalty_weights;
-		penalty_weights=VectorXd::Zero(raw_detections.size());
-		for (size_t i = 0; i < raw_detections.size(); ++i)
-		{
-			Rect bbox = raw_detections.at(i);
-			//double IoU=0.0;
-			int inside_count=0;
-			for (size_t j = 0; j < raw_detections.size(); ++j)
-			{
-				Rect bbox2 = raw_detections.at(j);
-				double Intersection = (double)(bbox2 &  bbox).area();
-				//double Union=(double)bbox.area()+(double)bbox2.area()-Intersection;
-				double area_ratio=bbox2.area()/bbox.area();
-				//IoU=Intersection/Union;
-				if(Intersection>0 & area_ratio<0.7) inside_count++;
-			}
-			penalty_weights(i) = exp((-1.0/2.0)*(inside_count));
-		}
+		VectorXd dpp_weights;
 		VectorXd prior_weights = Map<VectorXd, Unaligned>(this->weights.data(), this->weights.size());
-		this->detections=dpp.run(raw_detections,prior_weights,penalty_weights,this->feature_values,dpp_weights,0.5,1.0,0.9);
+		this->detections=dpp.run(raw_detections,prior_weights,this->feature_values,dpp_weights,0.5,0.9,0.9);
 		vector<double> new_weights(&dpp_weights[0], dpp_weights.data()+dpp_weights.size());
 		this->weights=new_weights;
 		//this->detections=raw_detections;
 	}
-	imwrite("resized_image.png", current_frame);
+	//imwrite("resized_image.png", current_frame);
 	this->num_frame++;
 	return this->detections;
 }
@@ -364,7 +347,8 @@ vector<Rect> CPU_LR_HOGDetector::region_proposal(Mat &frame){
     Ptr<SelectiveSearchSegmentation> ss = createSelectiveSearchSegmentation();
     ss->setBaseImage(frame);
     ss->switchToSelectiveSearchFast();
-    ss->process(samples);
+	ss->process(samples);
+	//samples = ss::selectiveSearch( frame, 500, 0.8, 10, 20000, 100000, 2.5 );
 	return samples;	
 }
 

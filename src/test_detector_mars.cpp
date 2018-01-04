@@ -3,7 +3,7 @@
 #ifndef PARAMS
 
 const double GROUP_THRESHOLD = 0.0;
-const double HIT_THRESHOLD = 0.5;
+const double HIT_THRESHOLD = 0.3;
 const double POSITIVE = 1.0;
 const double NEGATIVE = 0.0;
 
@@ -138,18 +138,24 @@ double TestDetector::detect(string train_path, string list){
 	while (getline(detect_list, line)) {
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
-		Mat grayImg;
+		Mat scale_frame;
 		detections.clear();
-		int newHeight = max((int)current_frame.rows/2,240);
-    	int newWidth = max((int)current_frame.cols/2,320);
-		//resize(current_frame, current_frame, Size(newWidth, newHeight));
-	    detections = this->detector.detect(current_frame);
+		int scale=2;
+		int scale_x=(int)current_frame.cols/scale;
+		int scale_y=(int)current_frame.rows/scale;
+		resize(current_frame, scale_frame, Size(scale_x, scale_y));
+		detections = this->detector.detect(scale_frame);
 		vector<double> weights = this->detector.getWeights(); 
 		for (int i = 0; i < detections.size(); ++i){
-				Rect r=detections.at(i);
-				rectangle( current_frame,r, Scalar(0,0,255), 2, LINE_8  );
-				rectangle( current_frame,Point(r.x,r.y-10),Point(r.x+r.width,r.y+20),Scalar(0,0,255), -1,8,0 );
-				putText(current_frame,to_string(weights.at(i)),Point(r.x+5,r.y+12),FONT_HERSHEY_SIMPLEX,0.5,Scalar(255,255,255),1);
+				Rect current_rect=detections.at(i);
+				Rect scale_rect=Rect(current_rect.x*scale,current_rect.y*scale,current_rect.width*scale,current_rect.height*scale);
+				rectangle( current_frame,scale_rect, Scalar(0,0,255), 2, LINE_8  );
+				rectangle( current_frame,Point(scale_rect.x,scale_rect.y-10),
+							Point(scale_rect.x+scale_rect.width,scale_rect.y+20),
+							Scalar(0,0,255), -1,8,0 );
+				if(GROUP_THRESHOLD==0){
+					putText(current_frame,to_string(weights.at(i)),Point(scale_rect.x+5,scale_rect.y+12),FONT_HERSHEY_SIMPLEX,0.5,Scalar(255,255,255),1);
+				}
 		}
 		imshow("Detector", current_frame);
 		waitKey(1);
@@ -162,7 +168,7 @@ double TestDetector::detect(string train_path, string list){
 
 int main(int argc, char* argv[]){
 	
-	string test_path = string("2DMOT2015/");
+	string test_path = string(argv[1]);
 	string train_path = string("MARS_DATA/MARS/");
 	string positive_list = string("pos.lst");
 	string negative_list = string("neg.lst");

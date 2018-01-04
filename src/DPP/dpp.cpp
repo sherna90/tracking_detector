@@ -25,11 +25,12 @@ MatrixXd DPP::squared_exponential_kernel(MatrixXd X, double nu, double sigma_f){
     return Cov;
 } 
 
-vector<Rect> DPP::run(vector<Rect> preDetections, VectorXd &detectionWeights, VectorXd &penaltyWeights, MatrixXd &featureValues, 
+vector<Rect> DPP::run(vector<Rect> preDetections, VectorXd &detectionWeights, MatrixXd &featureValues, 
 	VectorXd &qualityTermResults, double lambda, double mu, double epsilon)
 {
 	//cout << "lambda:" << lambda << " mu:" << mu << " epsilon:" << epsilon << endl;
 	vector<Rect> respDPP;
+	VectorXd penaltyWeights=VectorXd::Zero(preDetections.size());
 	if(preDetections.size()>0){
 		VectorXd area(preDetections.size());
 		MatrixXd intersectionArea(preDetections.size(), preDetections.size());
@@ -37,13 +38,16 @@ vector<Rect> DPP::run(vector<Rect> preDetections, VectorXd &detectionWeights, Ve
 		for (size_t i = 0; i < preDetections.size(); ++i)
 		{
 			Rect bbox = preDetections.at(i);
-			area(i) = bbox.width * bbox.height;
-
-			for (size_t j = 0; j < preDetections.size(); ++j)
+			area(i) =bbox.area();
+			int inside_count=0;
+			for (size_t j = i+1; j < preDetections.size(); ++j)
 			{
 				Rect bbox2 = preDetections.at(j);
-				intersectionArea(i,j) = intersectionArea(i,j) = double((bbox & bbox2).area());
+				double area_ratio=bbox2.area()/bbox.area();
+				intersectionArea(i,j) = intersectionArea(j,i) = double((bbox & bbox2).area());
+				if(intersectionArea(i,j)>0 & area_ratio<0.5) inside_count++;
 			}
+			penaltyWeights(i) = exp(-lambda*inside_count);
 		}
 
 		MatrixXd sqrtArea = area.cwiseSqrt() * area.cwiseSqrt().adjoint();
@@ -67,7 +71,8 @@ vector<Rect> DPP::run(vector<Rect> preDetections, VectorXd &detectionWeights, Ve
 }
 
 VectorXd DPP::get_quality_term(VectorXd &detectionWeights, VectorXd &penaltyWeights, double lambda){
-	return lambda * detectionWeights.array() + (1 - lambda) * penaltyWeights.array();
+	//return lambda * detectionWeights.array() + (1 - lambda) * penaltyWeights.array();
+	return detectionWeights.array()* penaltyWeights.array();
 }
 
 MatrixXd DPP::get_similarity_term(MatrixXd &featureValues, MatrixXd &intersectionArea, MatrixXd &sqrtArea, double mu){
@@ -80,8 +85,7 @@ MatrixXd DPP::get_similarity_term(MatrixXd &featureValues, MatrixXd &intersectio
 	MatrixXd Ss = intersectionArea.array() / sqrtArea.array();
 	MatrixXd Sc = featureValues * featureValues.adjoint();
 	MatrixXd S = mu * Ss.array() + (1 - mu) * Sc.array();
-	//MatrixXd S = featureValues * featureValues.adjoint();
-	return S;
+	return Ss;
 }
 
 vector<int> DPP::solve(VectorXd &qualityTerm, MatrixXd &similarityTerm, double epsilon){

@@ -5,7 +5,6 @@
 #include "../likelihood/CPU_logistic_regression.hpp"
 #include "../libs/piotr_fhog/fhog.hpp"
 
-
 using namespace cv;
 using namespace std;
 using namespace Eigen;
