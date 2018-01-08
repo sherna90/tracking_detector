@@ -130,24 +130,47 @@ void TestDetector::loadModel(){
 };
  
 double TestDetector::detect(string train_path, string list){
-	string line;
+	string line,detections_line,cell_data;
 	ifstream detect_list((train_path+list).c_str());
+	string mot_detections="det/det.txt";
 	if (!detect_list) CV_Error(Error::StsBadArg, "No valid input file was given, please check the given filename.");
 	vector<Rect> detections;
+	//int num_frames=utils.get_Rows(train_path+mot_detections).c_str());
+	vector< vector<Rect> > samples(796);
+	ifstream boxes_list((train_path+mot_detections).c_str());
+	while (getline(boxes_list, detections_line)) {
+		int col=0;
+		stringstream csv_line(detections_line);
+		vector<double> line_data;
+		double item;
+		while (getline(csv_line, cell_data, ',') && col <6){
+			item=atof(cell_data.c_str());
+			line_data.push_back(item);
+			col++;
+		}
+		Rect det(line_data[2],line_data[3],line_data[4],line_data[5]);
+		samples[line_data[0]].push_back(det);
+	}
+	boxes_list.close();
 	namedWindow("Detector");
+	int num_file=0;
 	while (getline(detect_list, line)) {
+		cout << num_file << endl;
 		string img_path = train_path+line;
 		Mat current_frame = imread(img_path);
 		Mat scale_frame;
-		detections.clear();
+		detections=samples[num_file];
 		int scale=2;
 		int scale_x=(int)current_frame.cols/scale;
 		int scale_y=(int)current_frame.rows/scale;
+		//pyrDown( current_frame, scale_frame,  Size(scale_x, scale_y));
 		resize(current_frame, scale_frame, Size(scale_x, scale_y));
 		detections = this->detector.detect(scale_frame);
-		vector<double> weights = this->detector.getWeights(); 
+		//vector<double> weights = this->detector.getWeights(); 
+		vector<double> weights= this->detector.detect(scale_frame,detections);
 		for (int i = 0; i < detections.size(); ++i){
 				Rect current_rect=detections.at(i);
+				cout << current_rect << endl;
 				Rect scale_rect=Rect(current_rect.x*scale,current_rect.y*scale,current_rect.width*scale,current_rect.height*scale);
 				rectangle( current_frame,scale_rect, Scalar(0,0,255), 2, LINE_8  );
 				rectangle( current_frame,Point(scale_rect.x,scale_rect.y-10),
@@ -159,7 +182,8 @@ double TestDetector::detect(string train_path, string list){
 		}
 		imshow("Detector", current_frame);
 		waitKey(1);
-
+		cout << "----------------------------------" << endl;
+		num_file++;
   	}
   	return 0;
 };

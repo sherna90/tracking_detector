@@ -18,7 +18,7 @@ void CPU_LR_HOGDetector::init(double group_threshold, double hit_threshold){
     args.lambda = 0.01;
     args.alpha= 0.9;
 	args.step_size = 0.001;
-	args.stride = 10;
+	args.stride = 15;
     unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
 	args.n_iterations = 1;
 	//this->n_descriptors = (args.width/args.cell_width-1)*(args.height/args.cell_width-1)*args.nbins*(args.block_width*args.block_width/(args.cell_width*args.cell_width));
@@ -91,7 +91,7 @@ vector<Rect> CPU_LR_HOGDetector::detect(Mat &frame)
 	else{
 		VectorXd dpp_weights;
 		VectorXd prior_weights = Map<VectorXd, Unaligned>(this->weights.data(), this->weights.size());
-		this->detections=dpp.run(raw_detections,prior_weights,this->feature_values,dpp_weights,0.5,0.9,0.9);
+		this->detections=dpp.run(raw_detections,prior_weights,this->feature_values,dpp_weights,0.5,0.5,0.9,0.9);
 		vector<double> new_weights(&dpp_weights[0], dpp_weights.data()+dpp_weights.size());
 		this->weights=new_weights;
 		//this->detections=raw_detections;
