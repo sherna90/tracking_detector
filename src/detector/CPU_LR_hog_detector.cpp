@@ -108,39 +108,40 @@ vector<double> CPU_LR_HOGDetector::detect(Mat &frame, vector<Rect> samples)
 	this->weights.clear();
 	double max_prob=0.0;
 	MatrixXd temp_features_matrix = MatrixXd::Zero(samples.size(),this->n_descriptors);
-		for(int i=0;i<samples.size();i++){
-			Rect current_window=samples[i];
-			Mat subImage = current_frame(current_window);
-			VectorXd hogFeatures = this->genHog(subImage);
-			VectorXd temp;
-			if(USE_COLOR){
-				VectorXd rawPixelsFeatures = this->genRawPixels(subImage);
-				temp.resize(hogFeatures.rows()+rawPixelsFeatures.rows());
-				temp << hogFeatures, rawPixelsFeatures;
-			}
-			else{
-				temp.resize(hogFeatures.rows());
-				temp << hogFeatures;
-			}
-			//temp.normalize();				
-			temp_features_matrix.row(i) = temp;	
+	this->feature_values = MatrixXd::Zero(samples.size(), this->n_descriptors);
+	for(int i = 0; i < samples.size(); i++){
+		Rect current_window = samples[i];
+		Mat subImage = current_frame(current_window);
+		VectorXd hogFeatures = this->genHog(subImage);
+		VectorXd temp;
+		if(USE_COLOR){
+			VectorXd rawPixelsFeatures = this->genRawPixels(subImage);
+			temp.resize(hogFeatures.rows()+rawPixelsFeatures.rows());
+			temp << hogFeatures, rawPixelsFeatures;
 		}
-		VectorXd dataNorm = temp_features_matrix.rowwise().squaredNorm().array().sqrt();
-		temp_features_matrix = temp_features_matrix.array().colwise() / dataNorm.array();
-		VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);
-		for (int i = 0; i < predict_prob.rows(); ++i)
-		{
-			Rect current_window=samples[i];
-			stringstream ss;
-	    	ss << predict_prob(i);
-	    	max_prob=MAX(max_prob,predict_prob(i));
-			//this->feature_values.row(i)=temp_features_matrix.row(i);
-			this->weights.push_back(predict_prob(i));
-			//string disp = ss.str().substr(0,4);
-	    	//rectangle( current_frame, Point(current_window.x,current_window.y),Point(current_window.x+current_window.width,current_window.y+20), Scalar(0,0,255), -1, 8,0 );
-	    	//putText(current_frame, disp, Point(current_window.x+5, current_window.y+12), FONT_HERSHEY_SIMPLEX, 0.3, Scalar(255, 255, 255),1);
-			//rectangle( current_frame, current_window, Scalar(0,0,255), 1, LINE_8  );
+		else{
+			temp.resize(hogFeatures.rows());
+			temp << hogFeatures;
 		}
+		//temp.normalize();
+		temp_features_matrix.row(i) = temp;	
+	}
+	VectorXd dataNorm = temp_features_matrix.rowwise().squaredNorm().array().sqrt();
+	temp_features_matrix = temp_features_matrix.array().colwise() / dataNorm.array();
+	VectorXd predict_prob = this->logistic_regression.predict(temp_features_matrix, true);
+	for (int i = 0; i < predict_prob.rows(); ++i)
+	{
+		Rect current_window = samples[i];
+		stringstream ss;
+		ss << predict_prob(i);
+		max_prob = MAX(max_prob,predict_prob(i));
+		this->feature_values.row(i) = temp_features_matrix.row(i);
+		this->weights.push_back(predict_prob(i));
+		//string disp = ss.str().substr(0,4);
+		//rectangle( current_frame, Point(current_window.x,current_window.y),Point(current_window.x+current_window.width,current_window.y+20), Scalar(0,0,255), -1, 8,0 );
+		//putText(current_frame, disp, Point(current_window.x+5, current_window.y+12), FONT_HERSHEY_SIMPLEX, 0.3, Scalar(255, 255, 255),1);
+		//rectangle( current_frame, current_window, Scalar(0,0,255), 1, LINE_8  );
+	}
 	this->num_frame++;
 	return this->weights;
 }
@@ -404,6 +405,10 @@ void CPU_LR_HOGDetector::generateFeatures(Mat &frame,int label){
 		this->labels.conservativeResize( 1 );
 		this->labels << label;		
 	}
+}
+
+MatrixXd CPU_LR_HOGDetector::getFeatures(){
+	return this->feature_values;
 }
 
 void CPU_LR_HOGDetector::data_clean(){

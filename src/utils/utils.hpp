@@ -16,6 +16,13 @@
 using namespace cv;
 using namespace std;
 
+typedef struct{
+	int label;
+  	Scalar color;
+	Rect bbox;
+	//int conf;
+} Target;
+
 class Performance
 {
     private:

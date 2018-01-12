@@ -1,5 +1,6 @@
 #ifndef CPU_LR_HOG_DETECTOR_H
 #define CPU_LR_HOG_DETECTOR_H
+
 #include "hog_detector.hpp"
 #include <opencv2/ximgproc/segmentation.hpp>
 #include "../likelihood/CPU_logistic_regression.hpp"
@@ -22,6 +23,7 @@ public:
 	VectorXd genRawPixels(Mat &frame);
 	void loadModel(VectorXd weights,VectorXd featureMean, VectorXd featureStd, VectorXd featureMax, VectorXd featureMin, double bias);
 	void generateFeatures(Mat &frame, int label);
+	MatrixXd getFeatures();
 protected:
 	HOGDescriptor hog;
 	CPU_LogisticRegression logistic_regression;

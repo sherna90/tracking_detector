@@ -8,26 +8,37 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
+#include <utils.hpp>
+
+#include <opencv2/core.hpp>
+#include <Eigen/Dense>
 
 using namespace std;
 using namespace cv;
+using namespace Eigen;
 
-class imageGenerator{
+class ImageGenerator{
 public:
-  imageGenerator();
-  imageGenerator(string _firstFrameFilename, string _groundTruthFile);
+  ImageGenerator();
+  ImageGenerator(string train_path);
+  //ImageGenerator(string _firstFrameFilename, string _groundTruthFile, string _detectionsFile);
   bool hasEnded();
   void moveNext();
-  Mat getFrame();
-  Rect getRegion();
-  int getDatasetSize();
-  vector<Mat> images;
-  vector<string> ground_truth;
-  Rect stringToRect(string str);
+  Mat getFrame(int frame_num);
+  vector<Target> getGroundTruth(int frame_num);
+  vector<Rect> getDetections(int frame_num);
+  VectorXd getDetectionWeights(int frame_num);
+  MatrixXd getDetectionFeatures(int frame_num);
+  size_t getDatasetSize();
 private:
+  void readDetections(string str);
+  void readGroundTruth(string str);
   int frame_id;
   void getNextFilename(string& filename);
-
+  vector<Mat> images;
+  vector< vector<Target> > ground_truth;
+  vector< vector<Rect> > detections;
+  Size img_size;
 };
 
 #endif // IMAGE_GENERATOR_H

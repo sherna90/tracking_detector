@@ -1,12 +1,10 @@
 #include "test_detector_cpu.hpp"
 
 #ifndef PARAMS
-
-const double GROUP_THRESHOLD = 0.0;
-const double HIT_THRESHOLD = 0.3;
-const double POSITIVE = 1.0;
-const double NEGATIVE = 0.0;
-
+	const double GROUP_THRESHOLD = 0.0;
+	const double HIT_THRESHOLD = 0.3;
+	const double POSITIVE = 1.0;
+	const double NEGATIVE = 0.0;
 #endif
 
 TestDetector::TestDetector(){
@@ -111,7 +109,6 @@ void TestDetector::test_detector(string test_path, string positive_list, string 
 	
 };
 
-
 void TestDetector::loadModel(){
 	C_utils utils;
 	VectorXd mean;
@@ -128,7 +125,7 @@ void TestDetector::loadModel(){
 	utils.read_Labels("../scripts/Model_mins.csv",min);
 	this->detector.loadModel(weights,mean,std, max, min, bias(0));
 };
- 
+
 double TestDetector::detect(string train_path, string list){
 	string line,detections_line,cell_data;
 	ifstream detect_list((train_path+list).c_str());
@@ -184,11 +181,52 @@ double TestDetector::detect(string train_path, string list){
 		waitKey(1);
 		cout << "----------------------------------" << endl;
 		num_file++;
-  	}
-  	return 0;
+	}
+	return 0;
 };
 
+double TestDetector::detect(string train_path){
+	ImageGenerator image_generator = ImageGenerator(train_path);
+	
+	namedWindow("Detector");
+	for(size_t i = 0; i < image_generator.getDatasetSize(); i++){
+		vector<Rect> detections = image_generator.getDetections(i);
+		Mat current_frame = image_generator.getFrame(i);
+		
+		Mat scale_frame;
+		int scale = 2;
+		int scale_x = (int)current_frame.cols/scale;
+		int scale_y = (int)current_frame.rows/scale;
+		resize(current_frame, scale_frame, Size(scale_x, scale_y));
+		
+		vector<double> weights = this->detector.detect(current_frame, detections);
+		MatrixXd feature_values = this->detector.getFeatures();
+		
+		for (size_t j = 0; j < detections.size(); ++j){
+			Rect current_rect = detections.at(j);
+		
+			cout << i + 1 << ",-1," 
+			<< detections[j].x << "," 
+			<< detections[j].y << "," 
+			<< detections[j].width << "," 
+			<< detections[j].height << "," 
+			<< weights[j] << ",-1,-1,-1";
+			for(size_t k = 0; k < feature_values.cols(); k++){
+				cout << "," << feature_values(j,k);
+			}
+			cout << endl;
 
+			if(GROUP_THRESHOLD == 0){
+				rectangle( current_frame, detections[j], Scalar(0,0,255), 2, LINE_8 );
+				putText(current_frame, to_string(weights.at(j)), Point(current_rect.x + 5, current_rect.y + 12),
+				 FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,255,255), 1);
+			}
+		}
+		imshow("Detector", current_frame);
+		waitKey(1);
+	}
+  	return 0;
+};
 
 int main(int argc, char* argv[]){
 	
@@ -203,6 +241,8 @@ int main(int argc, char* argv[]){
 	tracker.loadModel();
 	//tracker.train();
 	//tracker.test_detector(train_path, positive_list, negative_list);
-	tracker.detect(test_path,positive_list);
+	//tracker.detect(test_path, positive_list);
+	tracker.detect(test_path);
 	//tracker.test();
+
 }

@@ -21,12 +21,14 @@ public:
     void test_detector(string train_path, string positive_list, string negative_list);
     void test();
     double detect(string train_path, string list);
+    double detect(string train_path);
     void loadModel();
 private:
 	vector<Mat> images;
 	vector<string> gt_vec;
 	CPU_LR_HOGDetector detector;
     mt19937 generator;
+    ImageGenerator image_generator;
 };
 
 #endif
